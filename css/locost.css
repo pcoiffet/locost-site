@@ -110,43 +110,98 @@ body::after {
 .terminal::after { content: "_"; color: var(--green); animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* Liste des expériences, façon index de répertoire */
-.canaux {
-  list-style: none;
-  margin: 36px 0 0;
-  padding: 0;
-  border-top: 1px solid var(--line);
+/* Fond de l'accueil : télé qui bug, discrète */
+.fond {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
-.canal {
+.fond .bruit { opacity: 0.045; }
+.fond .filigrane { --filigrane: 0.07; top: 50%; width: min(620px, 115vw); }
+.fond::before {
+  /* bande claire qui défile lentement, comme une image mal synchronisée */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.035), transparent);
+  animation: defilement 9s linear infinite;
+}
+.fond::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+@keyframes defilement { from { transform: translateY(-160px); } to { transform: translateY(100vh); } }
+.barre, .wrap { position: relative; z-index: 1; }
+
+/* Les cases des expériences */
+.cases {
   display: grid;
-  grid-template-columns: 2.4em 1fr auto;
-  column-gap: 12px;
-  row-gap: 4px;
-  padding: 18px 4px;
-  border-bottom: 1px solid var(--line);
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 36px;
+}
+@media (min-width: 760px) { .cases { grid-template-columns: repeat(3, 1fr); } }
+.case {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: rgba(5, 5, 5, 0.75);
   color: var(--fg);
   text-decoration: none;
-  transition: background-color 0.15s;
+  overflow: hidden;
+  transition: border-color 0.2s, background-color 0.2s;
 }
-.canal:hover, .canal:focus-visible { background: var(--bg-2); }
-.canal .num { color: var(--fg-faint); }
-.canal .nom { font-weight: 600; letter-spacing: 0.02em; }
-.canal .etat { color: var(--green); font-size: 0.75rem; text-align: right; }
-.canal .desc, .canal .ref { grid-column: 2 / 4; color: var(--fg-dim); font-size: 0.85rem; }
-.canal .ref { color: var(--fg-faint); font-size: 0.7rem; letter-spacing: 0.1em; }
-.canal:hover .nom::after { content: " ↵"; color: var(--green); }
-.canal.verrouille .nom, .canal.verrouille .desc { color: var(--fg-faint); }
-.canal.verrouille .etat { color: var(--red); opacity: 0.7; }
-.canal.verrouille:hover .nom::after { content: ""; }
+a.case:hover, a.case:focus-visible { border-color: var(--fg-faint); background: rgba(14, 14, 14, 0.85); }
+.case-haut { display: flex; justify-content: space-between; gap: 12px; font-size: 0.7rem; letter-spacing: 0.1em; }
+.case .num { color: var(--fg-faint); }
+.case .etat { color: var(--green); }
+.case .nom { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.04em; }
+.case .desc { margin: 0; color: var(--fg-dim); font-size: 0.85rem; }
+.case .ref { margin-top: auto; color: var(--fg-faint); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
+a.case:hover .nom { animation: tressaille 0.3s steps(2) 1; }
+a.case:hover .ref::after { content: " ↵"; color: var(--green); }
+@keyframes tressaille {
+  0% { transform: translateX(-2px); text-shadow: 2px 0 var(--red), -2px 0 var(--cyan); }
+  50% { transform: translateX(1px); text-shadow: -1px 0 var(--red), 1px 0 var(--cyan); }
+  100% { transform: none; text-shadow: none; }
+}
+.case.hors-ligne .etat { color: var(--red); opacity: 0.75; }
 
-.logo { width: min(150px, 40vw); height: auto; display: block; margin: 0 0 28px; opacity: 0.8; }
-
-footer {
-  margin-top: 56px;
-  color: var(--fg-faint);
+/* Case censurée : texte masqué par des bandes, qui se trahit par instants */
+.case.censure { cursor: not-allowed; }
+.case.censure .etat { color: var(--fg-faint); }
+.masque {
+  display: inline;
+  padding: 0 2px;
+  background: #1d1d1d;
+  color: transparent;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  user-select: none;
+}
+.masque.trahi { color: var(--fg-dim); background: #141414; }
+.tampon {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  padding: 3px 10px;
+  background: rgba(5, 5, 5, 0.6);
+  border: 1px solid rgba(255, 42, 79, 0.45);
+  color: rgba(255, 42, 79, 0.55);
   font-size: 0.7rem;
-  line-height: 1.8;
-  word-break: break-all;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  transform: translate(-50%, -50%) rotate(-8deg);
 }
 
 .retour {
@@ -181,7 +236,7 @@ footer {
 .boot.fini { opacity: 0; pointer-events: none; }
 .js:not(.sans-boot) body { overflow: hidden; }
 
-.boot-bruit {
+.bruit {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -191,7 +246,8 @@ footer {
 }
 
 /* Logo en filigrane, qui se dérègle par à-coups */
-.boot-logo {
+.filigrane {
+  --filigrane: 0.15;
   position: absolute;
   top: 38%;
   left: 50%;
@@ -199,22 +255,22 @@ footer {
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   background: center / contain no-repeat;
-  opacity: 0.15;
+  opacity: var(--filigrane);
   animation: logo-saut 5s infinite steps(1);
 }
-.boot-logo::before, .boot-logo::after {
+.filigrane::before, .filigrane::after {
   content: "";
   position: absolute;
   inset: 0;
   background: inherit;
   clip-path: inset(0 0 100% 0);
 }
-.boot-logo::before { animation: logo-a 2.7s infinite steps(1); }
-.boot-logo::after { animation: logo-b 3.9s infinite steps(1); }
+.filigrane::before { animation: logo-a 2.7s infinite steps(1); }
+.filigrane::after { animation: logo-b 3.9s infinite steps(1); }
 @keyframes logo-saut {
-  0%, 90%, 100% { opacity: 0.15; }
-  91% { opacity: 0.22; transform: translate(-51%, -50%) skewX(-4deg); }
-  93% { opacity: 0.05; }
+  0%, 90%, 100% { opacity: var(--filigrane); }
+  91% { opacity: calc(var(--filigrane) * 1.6); transform: translate(-51%, -50%) skewX(-4deg); }
+  93% { opacity: calc(var(--filigrane) * 0.3); }
 }
 @keyframes logo-a {
   0%, 80%, 100% { clip-path: inset(0 0 100% 0); transform: none; }
@@ -279,6 +335,6 @@ footer {
 .boot-passer:hover { color: var(--fg-dim); }
 
 @media (prefers-reduced-motion: reduce) {
-  .glitch::before, .glitch::after, .boot-logo::before, .boot-logo::after { display: none; }
-  .boot-logo { animation: none; }
+  .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
+  .filigrane, a.case:hover .nom { animation: none; }
 }

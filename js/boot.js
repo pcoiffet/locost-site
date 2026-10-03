@@ -27,39 +27,7 @@
     ['accès autorisé.', '', 0],
   ];
 
-  // Bruit d'écran : petite image aléatoire agrandie, redessinée en boucle
-  let bruitActif = !calme;
-  if (canvas && !calme) {
-    const ctx = canvas.getContext('2d');
-    const taille = () => {
-      canvas.width = Math.ceil(window.innerWidth / 3);
-      canvas.height = Math.ceil(window.innerHeight / 3);
-    };
-    taille();
-    window.addEventListener('resize', taille);
-    let dernier = 0;
-    const dessiner = (t) => {
-      if (!bruitActif) return;
-      if (t - dernier > 60) {
-        dernier = t;
-        const img = ctx.createImageData(canvas.width, canvas.height);
-        const d = img.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const v = Math.random() * 255;
-          d[i] = d[i + 1] = d[i + 2] = v;
-          d[i + 3] = 255;
-        }
-        ctx.putImageData(img, 0, 0);
-        // Déchirure horizontale de temps en temps
-        if (Math.random() < 0.15) {
-          ctx.fillStyle = 'rgba(255,255,255,0.6)';
-          ctx.fillRect(0, Math.random() * canvas.height, canvas.width, 1 + Math.random() * 3);
-        }
-      }
-      requestAnimationFrame(dessiner);
-    };
-    requestAnimationFrame(dessiner);
-  }
+  const arreterBruit = lancerBruit(canvas);
 
   const ajouter = (classe, nouvelleLigne) => {
     if (nouvelleLigne && sortie.childNodes.length) sortie.append('\n');
@@ -82,7 +50,7 @@
     boot.classList.add('fini');
     document.dispatchEvent(new Event('locost:entree'));
     setTimeout(() => {
-      bruitActif = false;
+      arreterBruit();
       document.documentElement.classList.add('sans-boot');
     }, 600);
   };
