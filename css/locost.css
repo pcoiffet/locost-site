@@ -145,7 +145,7 @@ body::after {
 }
 @keyframes defilement { from { transform: translateY(-160px); } to { transform: translateY(100vh); } }
 .barre, .wrap { position: relative; z-index: 1; }
-.wrap .filigrane { margin-bottom: 24px; }
+.fond .filigrane { --filigrane: 0.07; top: 50%; width: min(620px, 115vw); }
 
 /* Les boutons des expériences : gros, épurés, juste le nom */
 .boutons {
@@ -214,10 +214,10 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
   z-index: 90;
   background: #000;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   text-align: center;
-  padding: 48px 16px calc(32px + env(safe-area-inset-bottom));
+  padding: 24px 16px calc(32px + env(safe-area-inset-bottom));
   overflow: hidden;
   transition: opacity 0.6s;
 }
@@ -234,14 +234,15 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
   image-rendering: pixelated;
 }
 
-/* Logo qui se dérègle par à-coups, centré au-dessus du contenu */
+/* Logo en filigrane, qui se dérègle par à-coups */
 .filigrane {
-  --filigrane: 0.85;
-  position: relative;
-  width: min(260px, 64vw);
-  max-width: 100%;
-  aspect-ratio: 594 / 397;
-  margin: 0 auto;
+  --filigrane: 0.15;
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: min(420px, 80vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
   background: center / contain no-repeat;
   opacity: var(--filigrane);
   animation: logo-saut 5s infinite steps(1);
@@ -257,7 +258,7 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 .filigrane::after { animation: logo-b 3.9s infinite steps(1); }
 @keyframes logo-saut {
   0%, 90%, 100% { opacity: var(--filigrane); }
-  91% { opacity: 1; transform: translateX(-4px) skewX(-4deg); }
+  91% { opacity: calc(var(--filigrane) * 1.6); transform: translate(-51%, -50%) skewX(-4deg); }
   93% { opacity: calc(var(--filigrane) * 0.3); }
 }
 @keyframes logo-a {
@@ -278,7 +279,6 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
   align-items: center;
   width: 100%;
   max-width: 760px;
-  margin-top: 28px;
 }
 .boot-lignes {
   margin: 0;
