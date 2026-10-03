@@ -2,40 +2,69 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Locost</title>
     <meta name="description" content="Locost : expériences immersives, jeux et rapports entre amis." />
     <meta name="theme-color" content="#000000" />
+    <script>
+      // Écran de démarrage une fois par session seulement
+      document.documentElement.classList.add('js');
+      try { if (sessionStorage.getItem('locost-boot')) document.documentElement.classList.add('sans-boot'); } catch (e) {}
+    </script>
     <link rel="stylesheet" href="/css/locost.css" />
   </head>
   <body>
+    <div class="boot" role="dialog" aria-label="Connexion">
+      <canvas class="boot-bruit" aria-hidden="true"></canvas>
+      <div class="boot-logo" style="background-image: url('/assets/images/locost-gris.png')" aria-hidden="true"></div>
+      <button class="boot-passer" type="button">passer &gt;&gt;</button>
+      <div class="boot-console">
+        <pre class="boot-lignes" aria-live="polite"></pre>
+        <button class="boot-entrer" type="button">Entrer</button>
+      </div>
+    </div>
+
+    <header class="barre">
+      <span class="point">connexion chiffrée</span>
+      <span>nœud 7F3A · relais 3/3</span>
+    </header>
+
     <main class="wrap">
-      <h1><img class="logo" src="/assets/images/locost.png" alt="Locost" /></h1>
-      <div class="eyebrow">Accès autorisé</div>
-      <p class="glitch" data-text="Choisissez votre canal">Choisissez votre canal</p>
+      <img class="logo" src="/assets/images/locost-gris.png" alt="Locost" />
+      <div class="eyebrow">Accès autorisé · session anonyme</div>
+      <h1 class="glitch" data-text="Choisissez votre canal">Choisissez votre canal</h1>
       <p
         class="terminal"
-        data-lines="Connexion établie.|Vous êtes observés... Attention aux apparences.|Sélectionnez une expérience pour continuer."
+        data-lines="Connexion établie.|Vous êtes observés. Attention aux apparences.|Sélectionnez un canal pour continuer."
       ></p>
 
-      <div class="portails">
-        <a class="portail verrouille" href="/jeu/">
-          <span class="code">CANAL 01 · ESP-00*</span>
-          <h2>Protocole Espigoule</h2>
-          <p>Le jeu immersif. Suivez les règles, mais les règles sont mauvaises.</p>
-          <span class="entrer">En reconstruction</span>
-        </a>
+      <ol class="canaux">
+        <li>
+          <a class="canal verrouille" href="/jeu/">
+            <span class="num">01</span>
+            <span class="nom">Protocole Espigoule</span>
+            <span class="etat">hors ligne</span>
+            <span class="desc">Le jeu immersif. Suivez les règles, mais les règles sont mauvaises.</span>
+            <span class="ref">ESP-00* · en reconstruction</span>
+          </a>
+        </li>
+        <li>
+          <a class="canal" href="/qui-ma-troll/">
+            <span class="num">02</span>
+            <span class="nom">Qui m'a troll ?</span>
+            <span class="etat">actif</span>
+            <span class="desc">Le rapport de la semaine : qui coule le groupe, trophées, pire game et squads.</span>
+            <span class="ref">RAPPORT HEBDO · mis à jour chaque semaine</span>
+          </a>
+        </li>
+      </ol>
 
-        <a class="portail" href="/qui-ma-troll/">
-          <span class="code">CANAL 02 · RAPPORT HEBDO</span>
-          <h2>Qui m'a troll ?</h2>
-          <p>Le rapport de la semaine : qui coule le groupe, trophées, pire game et squads.</p>
-          <span class="entrer">Entrer &gt;</span>
-        </a>
-      </div>
-
-      <footer>locost.fr</footer>
+      <footer>
+        Ne partagez pas cette adresse.<br />
+        empreinte : 7F3A 91C2 0B5E D44A · locost.fr
+      </footer>
     </main>
     <script src="/js/terminal.js"></script>
+    <script src="/js/boot.js"></script>
   </body>
 </html>
