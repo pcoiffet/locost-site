@@ -10,21 +10,14 @@
   const passer = boot.querySelector('.boot-passer');
   const canvas = boot.querySelector('.boot-bruit');
 
-  const hex = (n) => Array.from({ length: n }, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]).join('');
-  const empreinte = `${hex(4)} ${hex(4)} ${hex(4)} ${hex(4)}`;
-
   // [texte, classe éventuelle, pause après la ligne (ms)]
   const lignes = [
-    ['locost-node v3.1 — initialisation', '', 300],
-    ['établissement du circuit [3 relais]', '', 200],
-    ['  relais 1 ............ ', '', 0], ['ok', 'ok', 150, true],
-    ['  relais 2 ............ ', '', 0], ['ok', 'ok', 150, true],
-    ['  relais 3 ............ ', '', 0], ['ok', 'ok', 300, true],
-    [`empreinte du nœud : ${empreinte}`, '', 250],
-    ['chiffrement de bout en bout ... ', '', 0], ['actif', 'ok', 350, true],
-    ['identité du visiteur : inconnue', '', 400],
-    ['ATTENTION : cette connexion est observée.', 'alerte', 300],
-    ['accès autorisé.', '', 0],
+    ['locost v2.1 - Initialisation', '', 300],
+    ['Mise en place des fragments', '', 200],
+    ['  fragment 1 ......... ', '', 0], ['ok', 'ok', 150, true],
+    ['  fragment 2 ......... ', '', 0], ['ok', 'ok', 150, true],
+    ['  fragment 3 ......... ', '', 0], ['ok', 'ok', 400, true],
+    ['anomalie supprimée.', 'alerte', 0],
   ];
 
   // Bruit d'écran : petite image aléatoire agrandie, redessinée en boucle
