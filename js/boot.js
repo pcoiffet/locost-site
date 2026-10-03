@@ -17,9 +17,9 @@
   const lignes = [
     ['locost v2.1 - Initialisation', '', 300],
     ['Mise en place des fragments', '', 200],
-    ['  fragment 1 ......... ', '', 0], ['ok', 'ok', 150, true],
-    ['  fragment 2 ......... ', '', 0], ['ok', 'ok', 150, true],
-    ['  fragment 3 ......... ', '', 0], ['ok', 'ok', 400, true],
+    ['fragment 1 ......... ', '', 0], ['ok', 'ok', 150, true],
+    ['fragment 2 ......... ', '', 0], ['ok', 'ok', 150, true],
+    ['fragment 3 ......... ', '', 0], ['ok', 'ok', 400, true],
     ['anomalie supprimée.', 'alerte', 300],
     [`empreinte du nœud : ${empreinte}`, '', 250],
     ['chiffrement de bout en bout ... ', '', 0], ['actif', 'ok', 350, true],
