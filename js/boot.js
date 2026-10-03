@@ -1,6 +1,6 @@
 // Écran de démarrage de l'accueil : bruit d'écran, lignes de terminal, logo qui glitch, puis bouton d'entrée.
 // Affiché une fois par session (sessionStorage) ; « passer » ou le bouton ferment l'écran.
-// Les infos de l'appareil sont lues dans le navigateur et ne sont envoyées nulle part.
+// Les infos de l'appareil (système, navigateur, batterie, visites) sont lues dans le navigateur et ne sont envoyées nulle part.
 (() => {
   const boot = document.querySelector('.boot');
   if (!boot || document.documentElement.classList.contains('sans-boot')) return;
@@ -12,8 +12,6 @@
   const canvas = boot.querySelector('.boot-bruit');
 
   const hasard = (min, max) => min + Math.random() * (max - min);
-  const hex = (n) => Array.from({ length: n }, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]).join('');
-  const empreinte = `${hex(4)} ${hex(4)} ${hex(4)} ${hex(4)}`;
   const coordonnee = (max, pos, neg) => {
     const v = hasard(-max, max);
     return `${Math.abs(v).toFixed(11)} ${v >= 0 ? pos : neg}`;
@@ -52,7 +50,6 @@
   // Chaque ligne : texte, classe, pause après (ms), suite (même ligne que la précédente),
   // lent (frappe ralentie), bloque (reste coincée puis secoue l'écran), efface (s'efface après affichage).
   function preparerLignes(niveauBatterie, numeroVisite) {
-    const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     return [
       { texte: 'locost v2.1 - Initialisation', pause: 300 },
       { texte: 'Mise en place des fragments', pause: 200 },
@@ -61,13 +58,9 @@
       { texte: 'fragment 3 ......... ' }, { texte: 'ok', classe: 'ok', pause: 300, suite: true },
       { texte: gps, classe: 'intrus', efface: true, pause: 250 },
       { texte: 'anomalie supprimée.', classe: 'alerte', pause: 300 },
-      { texte: `empreinte du nœud : ${empreinte}`, pause: 250 },
-      { texte: 'chiffrement de bout en bout ... ' }, { texte: 'actif', classe: 'ok', pause: 350, suite: true },
       { texte: `appareil détecté : ${appareil()}`, pause: 200 },
-      { texte: `heure locale : ${heure}`, pause: 200 },
       niveauBatterie !== null && { texte: `batterie : ${niveauBatterie} %`, pause: 200 },
-      numeroVisite !== null && { texte: `visite n°${numeroVisite}`, pause: 300 },
-      { texte: 'identité du visiteur : inconnue', pause: 400 },
+      numeroVisite !== null && { texte: `visite n°${numeroVisite}`, pause: 400 },
       { texte: 'accès autorisé.' },
     ].filter(Boolean);
   }

@@ -303,7 +303,7 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 }
 .boot-lignes {
   margin: 0;
-  min-height: 17em;
+  min-height: 12em;
   color: var(--fg-dim);
   font: 0.78rem/1.7 var(--mono);
   white-space: pre-wrap;
