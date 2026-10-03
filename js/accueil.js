@@ -1,10 +1,10 @@
-// Accueil : bruit discret en fond et case censurée qui laisse fuiter des bribes de texte.
+// Accueil : bruit discret en fond et bouton censuré qui laisse fuiter des bribes de texte.
 (() => {
   lancerBruit(document.querySelector('.fond .bruit'), { echelle: 4, intervalle: 90, dechirures: 0.08 });
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const signes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&?/<>';
-  const masques = [...document.querySelectorAll('.case.censure .masque')];
+  const masques = [...document.querySelectorAll('.bouton.censure .masque')];
   masques.forEach((m) => { m.dataset.barres = m.textContent; });
 
   const fuite = () => {

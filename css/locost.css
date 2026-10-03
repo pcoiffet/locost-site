@@ -139,47 +139,37 @@ body::after {
 @keyframes defilement { from { transform: translateY(-160px); } to { transform: translateY(100vh); } }
 .barre, .wrap { position: relative; z-index: 1; }
 
-/* Les cases des expériences */
-.cases {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-  margin-top: 36px;
-}
-@media (min-width: 760px) { .cases { grid-template-columns: repeat(3, 1fr); } }
-.case {
-  position: relative;
+/* Les boutons des expériences : gros, épurés, juste le nom */
+.boutons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-  padding: 18px;
-  border: 1px solid var(--line);
+  gap: 14px;
+  max-width: 440px;
+  margin-top: 40px;
+}
+.bouton {
+  display: block;
+  padding: 22px 20px;
+  border: 1px solid var(--fg-faint);
   background: rgba(5, 5, 5, 0.75);
   color: var(--fg);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
   text-decoration: none;
-  overflow: hidden;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
-a.case:hover, a.case:focus-visible { border-color: var(--fg-faint); background: rgba(14, 14, 14, 0.85); }
-.case-haut { display: flex; justify-content: space-between; gap: 12px; font-size: 0.7rem; letter-spacing: 0.1em; }
-.case .num { color: var(--fg-faint); }
-.case .etat { color: var(--green); }
-.case .nom { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.04em; }
-.case .desc { margin: 0; color: var(--fg-dim); font-size: 0.85rem; }
-.case .ref { margin-top: auto; color: var(--fg-faint); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
-a.case:hover .nom { animation: tressaille 0.3s steps(2) 1; }
-a.case:hover .ref::after { content: " ↵"; color: var(--green); }
+a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(--green); animation: tressaille 0.3s steps(2) 1; }
 @keyframes tressaille {
   0% { transform: translateX(-2px); text-shadow: 2px 0 var(--red), -2px 0 var(--cyan); }
   50% { transform: translateX(1px); text-shadow: -1px 0 var(--red), 1px 0 var(--cyan); }
   100% { transform: none; text-shadow: none; }
 }
-.case.hors-ligne .etat { color: var(--red); opacity: 0.75; }
 
-/* Case censurée : texte masqué par des bandes, qui se trahit par instants */
-.case.censure { cursor: not-allowed; }
-.case.censure .etat { color: var(--fg-faint); }
+/* Bouton censuré : nom masqué par une bande, qui se trahit par instants */
+.bouton.censure { border-color: var(--line); cursor: not-allowed; }
 .masque {
   display: inline;
   padding: 0 2px;
@@ -190,19 +180,7 @@ a.case:hover .ref::after { content: " ↵"; color: var(--green); }
   user-select: none;
 }
 .masque.trahi { color: var(--fg-dim); background: #141414; }
-.tampon {
-  position: absolute;
-  top: 52%;
-  left: 50%;
-  padding: 3px 10px;
-  background: rgba(5, 5, 5, 0.6);
-  border: 1px solid rgba(255, 42, 79, 0.45);
-  color: rgba(255, 42, 79, 0.55);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  transform: translate(-50%, -50%) rotate(-8deg);
-}
+
 
 .retour {
   position: fixed;
@@ -336,5 +314,5 @@ a.case:hover .ref::after { content: " ↵"; color: var(--green); }
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
-  .filigrane, a.case:hover .nom { animation: none; }
+  .filigrane, a.bouton:hover { animation: none; }
 }

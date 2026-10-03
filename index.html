@@ -42,31 +42,13 @@
         data-lines="Connexion établie.|Trois canaux détectés.|Sélectionnez un canal pour continuer."
       ></p>
 
-      <div class="cases">
-        <a class="case hors-ligne" href="/jeu/">
-          <div class="case-haut"><span class="num">01</span><span class="etat">hors ligne</span></div>
-          <h2 class="nom">P.R.O.T.O.C.O.L.E</h2>
-          <p class="desc">Le jeu immersif. Suivez les règles, mais les règles sont mauvaises.</p>
-          <span class="ref">ESP-00* · en reconstruction</span>
-        </a>
-
-        <a class="case" href="/qui-ma-troll/">
-          <div class="case-haut"><span class="num">02</span><span class="etat">actif</span></div>
-          <h2 class="nom">Qui m'a troll ?</h2>
-          <p class="desc">Le rapport de la semaine : qui coule le groupe, trophées, pire game et squads.</p>
-          <span class="ref">Rapport hebdo</span>
-        </a>
-
-        <div class="case censure" aria-label="Canal 03 : contenu censuré, bientôt disponible">
-          <div class="case-haut" aria-hidden="true"><span class="num">03</span><span class="etat">classifié</span></div>
-          <h2 class="nom" aria-hidden="true"><span class="masque">██████ ████</span></h2>
-          <p class="desc" aria-hidden="true">
-            <span class="masque">████ ██████ ███ ████████</span> <span class="masque">██ █████ ████</span>
-          </p>
-          <span class="ref" aria-hidden="true">Dossier 03 · accès refusé</span>
-          <span class="tampon" aria-hidden="true">CENSURÉ</span>
-        </div>
-      </div>
+      <nav class="boutons" aria-label="Canaux">
+        <a class="bouton" href="/jeu/">P.R.O.T.O.C.O.L.E</a>
+        <a class="bouton" href="/qui-ma-troll/">Qui m'a troll ?</a>
+        <span class="bouton censure" aria-label="Canal censuré, bientôt disponible">
+          <span class="masque" aria-hidden="true">██████████</span>
+        </span>
+      </nav>
     </main>
     <script src="/js/bruit.js"></script>
     <script src="/js/terminal.js"></script>
