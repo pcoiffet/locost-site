@@ -235,7 +235,7 @@ footer {
 }
 .boot-lignes {
   margin: 0;
-  min-height: 11em;
+  min-height: 15em;
   color: var(--fg-dim);
   font: 0.78rem/1.7 var(--mono);
   white-space: pre-wrap;

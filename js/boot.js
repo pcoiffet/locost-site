@@ -10,6 +10,9 @@
   const passer = boot.querySelector('.boot-passer');
   const canvas = boot.querySelector('.boot-bruit');
 
+  const hex = (n) => Array.from({ length: n }, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]).join('');
+  const empreinte = `${hex(4)} ${hex(4)} ${hex(4)} ${hex(4)}`;
+
   // [texte, classe éventuelle, pause après la ligne (ms)]
   const lignes = [
     ['locost v2.1 - Initialisation', '', 300],
@@ -17,7 +20,11 @@
     ['  fragment 1 ......... ', '', 0], ['ok', 'ok', 150, true],
     ['  fragment 2 ......... ', '', 0], ['ok', 'ok', 150, true],
     ['  fragment 3 ......... ', '', 0], ['ok', 'ok', 400, true],
-    ['anomalie supprimée.', 'alerte', 0],
+    ['anomalie supprimée.', 'alerte', 300],
+    [`empreinte du nœud : ${empreinte}`, '', 250],
+    ['chiffrement de bout en bout ... ', '', 0], ['actif', 'ok', 350, true],
+    ['identité du visiteur : inconnue', '', 400],
+    ['accès autorisé.', '', 0],
   ];
 
   // Bruit d'écran : petite image aléatoire agrandie, redessinée en boucle
