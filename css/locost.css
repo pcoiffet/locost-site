@@ -178,7 +178,28 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 }
 
 /* Bouton censuré : nom masqué par une bande, qui se trahit par instants */
-.bouton.censure { border-color: var(--line); cursor: not-allowed; }
+.bouton.censure {
+  border-color: var(--line);
+  cursor: not-allowed;
+  transition: transform 0.18s ease-out, border-color 0.2s;
+}
+.bouton.censure.refuse { border-color: rgba(255, 42, 79, 0.5); color: var(--red); animation: tressaille 0.3s steps(2) 1; }
+
+/* Visage qui surgit en négatif, une fraction de seconde */
+.visage {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  /* tête du croco (≈ 77 % / 33 % de l'image) ramenée au centre de l'écran */
+  background-size: 225vmin auto;
+  background-position: calc(50vw - 173vmin) calc(50vh - 50vmin);
+  filter: invert(1) contrast(1.6) grayscale(1);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.visage.surgit { opacity: 0.55; }
 .masque {
   display: inline;
   padding: 0 2px;
@@ -282,7 +303,7 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 }
 .boot-lignes {
   margin: 0;
-  min-height: 17em;
+  min-height: 12em;
   color: var(--fg-dim);
   font: 0.78rem/1.7 var(--mono);
   white-space: pre-wrap;
@@ -290,6 +311,14 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 }
 .boot-lignes .ok { color: var(--green); }
 .boot-lignes .alerte { color: var(--fg); }
+.boot-lignes .intrus { color: var(--red); }
+.boot.secousse { animation: secousse 0.26s steps(3) 1; }
+@keyframes secousse {
+  0% { transform: translate(6px, -3px); filter: invert(1); }
+  40% { transform: translate(-8px, 2px); filter: none; }
+  70% { transform: translate(3px, 4px) skewX(3deg); }
+  100% { transform: none; }
+}
 .boot-lignes::after { content: "_"; color: var(--green); animation: blink 1s steps(1) infinite; }
 
 .boot-entrer {
@@ -327,5 +356,6 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
-  .filigrane, a.bouton:hover { animation: none; }
+  .filigrane, a.bouton:hover, .boot.secousse, .bouton.censure.refuse { animation: none; }
+  .visage { display: none; }
 }
