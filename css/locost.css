@@ -294,35 +294,40 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 }
 
 .boot-console {
-  position: relative;
+  /* la roue et le bouton occupent la même place : l'un s'efface, l'autre apparaît */
+  position: absolute;
+  top: calc(38% + min(150px, 28vw));
+  left: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+}
+.boot-console > * { grid-area: 1 / 1; }
+/* Attente sobre : roue en pointillés et un seul mot */
+.boot-attente {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 760px;
-}
-.boot-lignes {
-  margin: 0;
-  min-height: 12em;
+  gap: 16px;
   color: var(--fg-dim);
-  font: 0.78rem/1.7 var(--mono);
-  white-space: pre-wrap;
-  word-break: break-word;
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: opacity 0.4s, visibility 0.4s;
 }
-.boot-lignes .ok { color: var(--green); }
-.boot-lignes .alerte { color: var(--fg); }
-.boot-lignes .intrus { color: var(--red); }
-.boot.secousse { animation: secousse 0.26s steps(3) 1; }
-@keyframes secousse {
-  0% { transform: translate(6px, -3px); filter: invert(1); }
-  40% { transform: translate(-8px, 2px); filter: none; }
-  70% { transform: translate(3px, 4px) skewX(3deg); }
-  100% { transform: none; }
+.roue {
+  width: 34px;
+  height: 34px;
+  border: 2px dotted var(--fg-dim);
+  border-radius: 50%;
+  animation: tourne 1.8s linear infinite;
 }
-.boot-lignes::after { content: "_"; color: var(--green); animation: blink 1s steps(1) infinite; }
+@keyframes tourne { to { transform: rotate(360deg); } }
+.boot-console.pret .boot-attente { opacity: 0; visibility: hidden; }
 
 .boot-entrer {
-  margin-top: 24px;
   padding: 14px 22px;
   width: 100%;
   max-width: 320px;
@@ -337,8 +342,8 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
   visibility: hidden;
   transition: opacity 0.4s, border-color 0.2s, color 0.2s;
 }
-.boot-entrer.pret { opacity: 1; visibility: visible; }
-.boot-entrer:hover { border-color: var(--green); color: var(--green); }
+.boot-console.pret .boot-entrer { opacity: 1; visibility: visible; }
+.boot-entrer:hover, .boot-entrer:focus-visible { border-color: var(--fg-dim); color: #fff; outline: none; }
 
 .boot-passer {
   position: absolute;
@@ -356,6 +361,7 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
-  .filigrane, a.bouton:hover, .boot.secousse, .bouton.censure.refuse { animation: none; }
+  .filigrane, a.bouton:hover, .bouton.censure.refuse { animation: none; }
+  .roue { animation-duration: 6s; }
   .visage { display: none; }
 }
