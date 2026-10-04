@@ -147,30 +147,29 @@ body::after {
 .barre, .wrap { position: relative; z-index: 1; }
 .fond .filigrane { --filigrane: 0.07; top: 50%; width: min(620px, 115vw); }
 
-/* Les boutons des expériences : gros, épurés, juste le nom */
+/* Les boutons des expériences : même style que le bouton Entrer du chargement */
 .boutons {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  max-width: 440px;
+  max-width: 320px;
   margin-top: 32px;
 }
 .bouton {
   display: block;
-  padding: 22px 20px;
+  padding: 14px 22px;
   border: 1px solid var(--fg-faint);
-  background: rgba(5, 5, 5, 0.75);
+  background: rgba(0, 0, 0, 0.35);
   color: var(--fg);
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font: 600 0.85rem var(--mono);
+  letter-spacing: 0.25em;
   text-align: center;
   text-transform: uppercase;
   text-decoration: none;
   transition: border-color 0.2s, color 0.2s;
 }
-a.bouton:hover, a.bouton:focus-visible { border-color: var(--green); color: var(--green); animation: tressaille 0.3s steps(2) 1; }
+a.bouton:hover, a.bouton:focus-visible { border-color: var(--fg-dim); color: #fff; outline: none; animation: tressaille 0.3s steps(2) 1; }
 @keyframes tressaille {
   0% { transform: translateX(-2px); text-shadow: 2px 0 var(--red), -2px 0 var(--cyan); }
   50% { transform: translateX(1px); text-shadow: -1px 0 var(--red), 1px 0 var(--cyan); }
