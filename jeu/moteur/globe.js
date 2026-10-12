@@ -109,7 +109,7 @@
     if (verrou) {
       panneau.appendChild(el('p', 'destination-refus', 'Accès refusé. Triangulation en cours.'));
     } else {
-      const etat = { archive: 'Protocole exécuté · archive classifiée', 'en-cours': 'Protocole actif' }[ep.statut] || '';
+      const etat = { archive: 'Mission validée · archive déclassifiée', 'en-cours': 'Protocole actif' }[ep.statut] || '';
       panneau.appendChild(el('p', 'destination-etat', etat));
       const lien = el('a', 'bouton', ep.statut === 'archive' ? 'Ouvrir le dossier' : 'Rejoindre');
       lien.href = ep.url;

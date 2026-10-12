@@ -25,7 +25,9 @@
       if (!morceau) return;
       const revelable = morceau.match(/^\[\[(.+)\]\]$/);
       const definitif = morceau.match(/^\{\{(\d+)\}\}$/);
-      if (revelable) {
+      if (revelable && ep.declassifie) {
+        frag.appendChild(el('span', 'caviar leve', revelable[1]));
+      } else if (revelable) {
         const barre = el('button', 'caviar', revelable[1]);
         barre.type = 'button';
         barre.setAttribute('aria-label', 'Passage masqué, toucher pour révéler');
@@ -58,8 +60,9 @@
   }
 
   // ---------- En-tête ----------
+  const etat = ep.declassifie ? 'déclassifié' : 'classifié';
   const barre = el('header', 'barre');
-  barre.append(el('span', 'point archive', 'archive'), el('span', null, `EP${ep.numero} · classifié`));
+  barre.append(el('span', `point archive${ep.declassifie ? ' valide' : ''}`, 'archive'), el('span', null, `EP${ep.numero} · ${etat}`));
   document.body.insertBefore(barre, fiche);
 
   const tete = el('div', 'fiche-tete');
@@ -67,7 +70,7 @@
   titre.dataset.text = ep.titre;
   const intro = el('p', 'terminal');
   intro.dataset.lines = ep.intro.join('|');
-  tete.append(el('div', 'eyebrow', `Archive ${ep.numero} · Classifiée`), titre, intro);
+  tete.append(el('div', 'eyebrow', `Archive ${ep.numero} · ${etat}e`), titre, intro);
   fiche.appendChild(tete);
 
   // ---------- Compte à rebours figé ----------
@@ -85,7 +88,7 @@
   const date = `${deuxChiffres(cible.getDate())}.${deuxChiffres(cible.getMonth() + 1)}.${cible.getFullYear()}`;
   const jours = Math.floor((Date.now() - cible) / 86400000);
   const legende = el('p', 'compteur-legende');
-  legende.append(el('span', 'tampon', 'Protocole exécuté'), el('span', 'compteur-date', `${date} · il y a ${jours} jours`));
+  legende.append(el('span', `tampon${ep.declassifie ? ' valide' : ''}`, ep.declassifie ? 'Mission validée' : 'Protocole exécuté'), el('span', 'compteur-date', `${date} · il y a ${jours} jours`));
   compteur.append(cases, legende);
   fiche.appendChild(compteur);
 
@@ -106,7 +109,7 @@
   }
 
   // ---------- Rappels ----------
-  const RENDUS = { transmission, documents, dossier, carte, fragments };
+  const RENDUS = { transmission, documents, recit, dossier, carte, fragments };
   const liste = el('div', 'rappels');
   ep.rappels.forEach((rappel, i) => {
     const rendu = RENDUS[rappel.type];
@@ -191,8 +194,30 @@
     corps.appendChild(el('p', 'note', 'Touchez une barre noire pour lever la censure. Certaines ne se lèvent pas.'));
   }
 
+  function recit(rappel, corps) {
+    rappel.blocs.forEach((b) => {
+      const bloc = el('div', 'recit');
+      if (b.titre) bloc.appendChild(el('h3', null, b.titre));
+      if (b.texte) bloc.appendChild(paragraphe('p', null, b.texte));
+      if (b.liste) {
+        const ul = el('ul');
+        b.liste.forEach((item) => ul.appendChild(paragraphe('li', null, item)));
+        bloc.appendChild(ul);
+      }
+      corps.appendChild(bloc);
+    });
+  }
+
   function dossier(rappel, corps) {
     rappel.semaines.forEach((s) => {
+      // Version courte : une ligne par week-end (lieu + nom de code)
+      if (s.lieu) {
+        const ligne = el('div', 'semaine-ligne');
+        ligne.append(el('span', 'semaine-num', `WE${deuxChiffres(s.numero)}`), el('span', 'semaine-lieu', s.lieu));
+        if (s.nom) ligne.appendChild(el('span', 'semaine-code', `« ${s.nom} »`));
+        corps.appendChild(ligne);
+        return;
+      }
       const semaine = el('details', `semaine${s.nom ? '' : ' vide'}${s.execute ? ' execute' : ''}`);
       const resume = el('summary');
       resume.append(el('span', 'semaine-num', `WE${deuxChiffres(s.numero)}`));
@@ -276,24 +301,68 @@
     if (rappel.source) corps.appendChild(el('p', 'note', rappel.source));
   }
 
-  function fragments(rappel, corps) {
+  function fragments(rappel, corps, bloc) {
     const grille = el('div', 'fragments');
-    const message = el('p', 'fragments-refus');
+    const message = el('p', 'fragments-message');
     message.setAttribute('aria-live', 'polite');
-    rappel.fragments.forEach((code) => {
+    const cartes = rappel.fragments.map((code) => {
       const carte = el('button', 'fragment');
       carte.type = 'button';
       carte.innerHTML = SILHOUETTE;
-      carte.append(el('span', 'fragment-code', code), el('span', 'fragment-purge', rappel.purge));
+      const etiquette = el('span', 'fragment-purge', rappel.purge);
+      carte.append(el('span', 'fragment-code', code), etiquette);
       carte.addEventListener('click', () => {
-        grille.querySelectorAll('.fragment.refuse').forEach((f) => f.classList.remove('refuse'));
+        cartes.forEach((c) => c.classList.remove('refuse'));
         void carte.offsetWidth;
         carte.classList.add('refuse');
-        message.textContent = `${code} · ${rappel.refus}`;
+        if (!rappel.taupe) message.textContent = `${code} · ${rappel.refus}`;
+        else if (!analyseFaite) return;
+        else message.textContent = `${code} · ${code === rappel.taupe ? rappel.demasque : rappel.verifie}`;
       });
       grille.appendChild(carte);
+      return Object.assign(carte, { code, etiquette });
     });
     corps.append(grille, message);
+    if (!rappel.taupe) return;
+
+    // Analyse : un balayage passe sur chaque fragment, ralentit, puis s'arrête sur la taupe
+    let analyseFaite = false;
+    let analyse = 0;
+    const relancer = el('button', 'lien-console', "relancer l'analyse");
+    relancer.type = 'button';
+    relancer.hidden = true;
+    corps.appendChild(relancer);
+
+    async function analyser() {
+      const numero = ++analyse;
+      analyseFaite = false;
+      relancer.hidden = true;
+      cartes.forEach((c) => { c.classList.remove('taupe', 'loyal', 'scan', 'refuse'); c.etiquette.textContent = rappel.purge; });
+      const cibleIndex = cartes.findIndex((c) => c.code === rappel.taupe);
+      if (!calme) {
+        message.textContent = 'Analyse des fragments…';
+        const pas = cartes.length * 2 + cibleIndex + 1;
+        for (let k = 0; k < pas; k++) {
+          if (numero !== analyse) return;
+          cartes.forEach((c) => c.classList.remove('scan'));
+          cartes[k % cartes.length].classList.add('scan');
+          await attendre(110 + k * k * 2.2);
+        }
+        cartes.forEach((c) => c.classList.remove('scan'));
+        await attendre(350);
+        if (numero !== analyse) return;
+      }
+      cartes.forEach((c) => {
+        const taupe = c.code === rappel.taupe;
+        c.classList.add(taupe ? 'taupe' : 'loyal');
+        c.etiquette.textContent = taupe ? 'Taupe identifiée' : 'Vérifié';
+      });
+      message.textContent = `Analyse terminée. Taupe identifiée : ${rappel.taupe}.`;
+      analyseFaite = true;
+      relancer.hidden = false;
+    }
+    bloc.addEventListener('toggle', () => { if (bloc.open && !analyse) analyser(); });
+    relancer.addEventListener('click', analyser);
   }
 
   function attendre(ms) {

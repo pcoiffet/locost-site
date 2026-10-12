@@ -268,3 +268,34 @@
 .carte-detail-tete { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #e6e6e6; }
 .carte-detail-code { color: var(--fg-dim); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .carte-detail p { margin: 6px 0 0; }
+
+/* Archive déclassifiée */
+.point.archive.valide::before { color: var(--green); }
+.tampon.valide { border-color: rgba(0, 255, 65, 0.45); color: var(--green); }
+.recit { margin: 0 0 14px; }
+.recit h3 { margin: 0 0 4px; color: var(--fg-dim); font-size: 0.7rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; }
+.recit p, .recit ul { margin: 0 0 6px; }
+.recit ul { padding-left: 1.2em; }
+.recit li { margin-bottom: 4px; }
+.semaine-ligne { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 8px 0 8px 12px; border-left: 1px solid var(--line); margin-bottom: 6px; }
+.semaine-lieu { color: #e6e6e6; }
+.semaine-code { color: var(--fg-dim); font-size: 0.75rem; }
+
+/* Fragments : analyse et taupe démasquée */
+.fragments-message { min-height: 1.4em; margin: 12px 0 6px; color: var(--fg-dim); font-size: 0.72rem; }
+.fragment { transition: border-color 0.15s, opacity 0.4s; }
+.fragment.scan { border-color: var(--green); }
+.fragment.scan .silhouette { fill: var(--fg-dim); }
+.fragment.loyal { opacity: 0.55; }
+.fragment.loyal .fragment-purge { color: var(--fg-dim); }
+.fragment.taupe { border-color: rgba(255, 42, 79, 0.7); opacity: 1; }
+.fragment.taupe .silhouette { fill: var(--red); animation: taupe 2.4s steps(1) infinite; }
+.fragment.taupe .fragment-code, .fragment.taupe .fragment-purge { color: var(--red); }
+@keyframes taupe {
+  0%, 86%, 100% { transform: none; filter: none; }
+  88% { transform: translateX(-3px) skewX(8deg); filter: drop-shadow(3px 0 var(--cyan)); }
+  92% { transform: translateX(2px); filter: drop-shadow(-3px 0 var(--cyan)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fragment.taupe .silhouette { animation: none; }
+}
