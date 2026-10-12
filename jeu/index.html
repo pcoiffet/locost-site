@@ -2,21 +2,31 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Protocole Espigoule · Locost</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>P.R.O.T.O.C.O.L.E · Locost</title>
     <meta name="theme-color" content="#000000" />
     <link rel="stylesheet" href="/css/locost.css?v=7" />
+    <link rel="stylesheet" href="/jeu/moteur/jeu.css?v=1" />
   </head>
   <body>
+    <header class="barre">
+      <span class="point">canal clandestin</span>
+      <span>protocole espigoule</span>
+    </header>
+
     <main class="wrap">
-      <div class="eyebrow">Canal 01 · Accès restreint</div>
-      <h1 class="glitch" data-text="Espigoule">Espigoule</h1>
+      <div class="eyebrow">Accès restreint</div>
+      <h1 class="glitch" data-text="P.R.O.T.O.C.O.L.E">P.R.O.T.O.C.O.L.E</h1>
       <p
         class="terminal"
-        data-lines="ERREUR : protocole en cours de réécriture.|Un fragment potentiellement malicieux a été détecté.|Revenez plus tard."
+        data-lines="Canal clandestin rétabli.|Épisodes détectés.|Sélectionnez un épisode."
       ></p>
+      <nav class="boutons episodes" aria-label="Épisodes"></nav>
     </main>
+
     <a class="retour" href="/">&lt; locost.fr</a>
     <script src="/js/terminal.js?v=7"></script>
+    <script src="/jeu/episodes.js?v=1"></script>
+    <script src="/jeu/moteur/liste.js?v=1"></script>
   </body>
 </html>
