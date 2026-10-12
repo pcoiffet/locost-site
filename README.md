@@ -9,7 +9,7 @@ L'accès au menu se fait par un écran de chargement avec mot de passe.
 | Page | Description |
 |---|---|
 | `/` | Écran de chargement et menu des apps |
-| `/jeu/` | P.R.O.T.O.C.O.L.E, un jeu immersif découpé en épisodes |
+| `/jeu/` | P.R.O.T.O.C.O.L.E : la Terre en rotation, chaque épisode est une destination à toucher |
 | `/jeu/ep01/` | Fiche d'archive de l'épisode 1 |
 | `/qui-ma-troll/` | Un rapport hebdomadaire, mis à jour chaque semaine |
 
