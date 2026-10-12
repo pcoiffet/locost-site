@@ -123,9 +123,10 @@ window.EPISODE = {
         {
           numero: 6,
           nom: "L'intervention",
-          coordonnees: '{{4}}°N {{4}}°E',
+          coordonnees: '52.52°N 13.40°E',
           execute: true,
           champs: [
+            ['Destination', 'Berlin'],
             ['Organisation', '[LUI]'],
             ['Expériences', 'E[X]P-α, E[X]P-β, E[X]P-γ. Descriptions chiffrées.'],
             ['Statut', 'Protocole exécuté le 05.12.2025.'],
