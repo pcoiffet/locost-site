@@ -63,7 +63,7 @@ window.EPISODE = {
         { numero: 1, lieu: 'Reims', nom: 'Éveil initial' },
         { numero: 2, lieu: 'Camping-car dans le Nord', nom: 'Consolidation mobile' },
         { numero: 3, lieu: 'Prague', nom: 'Test de cohérence' },
-        { numero: 4, lieu: 'Camping dans les Landes', nom: 'Immersion festive' },
+        { numero: 4, lieu: 'Camping dans les Landes', nom: 'Épreuve du feu' },
         { numero: 5, lieu: 'Berlin', nom: "L'intervention", valide: true },
       ],
     },
