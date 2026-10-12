@@ -389,36 +389,12 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--fg-dim); color: #ff
   100% { transform: none; text-shadow: none; }
 }
 
-/* Bon mot de passe : une barre verticale apparaît au centre et ouvre le menu */
-.fente {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  z-index: 95;
-  width: 2px;
-  margin-left: -1px;
-  background: #fff;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
-  pointer-events: none;
-  animation: fente 0.6s ease-out 1 forwards;
-}
-@keyframes fente {
-  0% { transform: scaleY(0); opacity: 1; }
-  25% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(1); opacity: 0; }
-}
-.ouverture .fond, .ouverture .barre, .ouverture .wrap { animation: ouverture 0.45s 0.15s cubic-bezier(0.7, 0, 0.2, 1) 1 both; }
-@keyframes ouverture {
-  from { clip-path: inset(0 50% 0 50%); }
-  to { clip-path: inset(0 0 0 0); }
-}
+/* Bon mot de passe : l'accès s'efface, l'écran de démarrage se fond dans le menu */
+.boot-console.part { opacity: 0; transition: opacity 0.2s; }
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
   .filigrane, a.bouton:hover, .bouton.censure.refuse, .boot-acces.bug .boot-mdp, .boot-acces.bug .boot-entrer { animation: none; }
-  .ouverture .fond, .ouverture .barre, .ouverture .wrap { animation: none; }
-  .fente { display: none; }
   .roue { animation-duration: 6s; }
   .visage { display: none; }
 }
