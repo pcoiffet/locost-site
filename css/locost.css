@@ -326,10 +326,39 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--fg-dim); color: #ff
 @keyframes tourne { to { transform: rotate(360deg); } }
 .boot-console.pret .boot-attente { opacity: 0; visibility: hidden; }
 
+/* Accès par mot de passe : apparaît à la place de la roue */
+.boot-acces {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s, visibility 0.4s;
+}
+.boot-console.pret .boot-acces { opacity: 1; visibility: visible; }
+.boot-mdp {
+  width: 100%;
+  padding: 12px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--fg-faint);
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  font: 16px var(--mono); /* 16px : évite le zoom automatique sur iPhone */
+  letter-spacing: 0.2em;
+  text-align: center;
+  caret-color: var(--fg);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.boot-mdp::placeholder { color: var(--fg-faint); letter-spacing: 0.25em; text-transform: uppercase; font-size: 0.75rem; }
+.boot-mdp:focus { outline: none; border-bottom-color: var(--fg-dim); }
 .boot-entrer {
   padding: 14px 22px;
   width: 100%;
-  max-width: 320px;
   border: 1px solid var(--fg-faint);
   background: transparent;
   color: var(--fg);
@@ -337,30 +366,24 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--fg-dim); color: #ff
   letter-spacing: 0.25em;
   text-transform: uppercase;
   cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s, border-color 0.2s, color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
-.boot-console.pret .boot-entrer { opacity: 1; visibility: visible; }
 .boot-entrer:hover, .boot-entrer:focus-visible { border-color: var(--fg-dim); color: #fff; outline: none; }
-
-.boot-passer {
-  position: absolute;
-  top: calc(12px + env(safe-area-inset-top));
-  right: 12px;
-  padding: 6px 8px;
-  border: 0;
-  background: none;
-  color: var(--fg-faint);
-  font: 0.7rem var(--mono);
-  letter-spacing: 0.1em;
-  cursor: pointer;
+.boot-erreur {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--red);
+  opacity: 0.75;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
 }
-.boot-passer:hover { color: var(--fg-dim); }
+.boot-acces.refuse { animation: tressaille 0.3s steps(2) 1; }
+.boot-acces.refuse .boot-mdp { border-bottom-color: rgba(255, 42, 79, 0.6); }
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
-  .filigrane, a.bouton:hover, .bouton.censure.refuse { animation: none; }
+  .filigrane, a.bouton:hover, .bouton.censure.refuse, .boot-acces.refuse { animation: none; }
   .roue { animation-duration: 6s; }
   .visage { display: none; }
 }

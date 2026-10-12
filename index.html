@@ -7,7 +7,7 @@
     <meta name="description" content="Locost : expériences immersives, jeux et rapports entre amis." />
     <meta name="theme-color" content="#000000" />
     <script>
-      // Écran de démarrage une fois par session seulement
+      // Écran de démarrage (avec mot de passe) une fois par session seulement
       document.documentElement.classList.add('js');
       try { if (sessionStorage.getItem('locost-boot')) document.documentElement.classList.add('sans-boot'); } catch (e) {}
     </script>
@@ -17,13 +17,16 @@
     <div class="boot" role="dialog" aria-label="Connexion">
       <canvas class="bruit boot-bruit" aria-hidden="true"></canvas>
       <div class="filigrane" style="background-image: url('/assets/images/locost-gris.png')" aria-hidden="true"></div>
-      <button class="boot-passer" type="button">passer &gt;&gt;</button>
       <div class="boot-console">
         <div class="boot-attente" role="status">
           <span class="roue" aria-hidden="true"></span>
           <span>chargement</span>
         </div>
-        <button class="boot-entrer" type="button">Entrer</button>
+        <form class="boot-acces" autocomplete="off">
+          <input class="boot-mdp" id="boot-mdp" type="password" placeholder="mot de passe" aria-label="Mot de passe" autocapitalize="off" spellcheck="false" />
+          <button class="boot-entrer" type="submit">Entrer</button>
+          <p class="boot-erreur" aria-live="polite"></p>
+        </form>
       </div>
     </div>
 
