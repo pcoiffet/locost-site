@@ -1,35 +1,25 @@
 # locost.fr
 
-Site d'accueil Locost : une porte d'entrée vers plusieurs expériences, avec une direction artistique commune (noir, vert terminal, glitch).
+Code source de [www.locost.fr](https://www.locost.fr), un petit site perso qui regroupe plusieurs projets.
 
-| Chemin | Contenu |
+L'accès au menu se fait par un écran de chargement avec mot de passe.
+
+## Contenu
+
+| Page | Description |
 |---|---|
-| `/` | Hub : intro glitch + une carte par expérience |
-| `/jeu/` | Protocole Espigoule, le jeu immersif (en reconstruction) |
-| `/qui-ma-troll/` | « Qui m'a troll ? », rapport hebdo League of Legends du groupe |
+| `/` | Écran de chargement et menu des apps |
+| `/jeu/` | P.R.O.T.O.C.O.L.E, un jeu immersif, en cours de développement |
+| `/qui-ma-troll/` | Un rapport hebdomadaire, mis à jour chaque semaine |
 
-## Structure
+## Technique
 
-```
-index.html          hub
-css/locost.css      charte commune, importée par toutes les pages
-js/terminal.js      effet « texte tapé »
-jeu/                le jeu immersif
-qui-ma-troll/       le rapport hebdo (page autonome)
-404.html            page d'erreur
-CNAME               domaine personnalisé GitHub Pages
-```
+- HTML, CSS et JavaScript, sans framework ni étape de build.
+- Une feuille de style commune (`css/locost.css`) pour toutes les pages.
+- Hébergé sur GitHub Pages : chaque push sur `main` met le site à jour.
 
-## Développement
-
-Aucun build. Pour tester en local :
+Pour le lancer en local :
 
 ```bash
 python3 -m http.server 8000
 ```
-
-puis ouvrir http://localhost:8000.
-
-## Mise en ligne
-
-GitHub Pages publie automatiquement la branche `main` sur https://www.locost.fr à chaque push.
