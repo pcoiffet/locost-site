@@ -25,23 +25,37 @@
   const racine = document.documentElement;
   let ouvert = false;
 
-  // Bon mot de passe : l'écran d'accès disparaît, une barre verticale ouvre le menu
+  // Les textes du menu arrivent brouillés puis se décodent lettre par lettre
+  const SIGNES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&?/<>';
+  const dechiffrer = (el) => {
+    const cible = el.textContent;
+    let n = 0;
+    const pas = () => {
+      n++;
+      el.textContent = [...cible]
+        .map((c, i) => (c === ' ' || i < n / 2 ? c : SIGNES[Math.floor(Math.random() * SIGNES.length)]))
+        .join('');
+      if (n / 2 < cible.length) setTimeout(pas, 30);
+      else el.textContent = cible;
+    };
+    pas();
+  };
+
+  // Bon mot de passe : l'accès s'efface, le fond se fond dans celui du menu
   const ouvrir = () => {
     ouvert = true;
     try { sessionStorage.setItem('locost-boot', '1'); } catch (e) {}
     mdp.blur();
-    arreterBruit();
-    racine.classList.add('sans-boot');
+    const fin = () => {
+      arreterBruit();
+      racine.classList.add('sans-boot');
+    };
     document.dispatchEvent(new Event('locost:entree'));
-    if (calme) return;
-    const fente = document.createElement('div');
-    fente.className = 'fente';
-    document.body.append(fente);
-    racine.classList.add('ouverture');
-    setTimeout(() => {
-      fente.remove();
-      racine.classList.remove('ouverture');
-    }, 700);
+    if (calme) return fin();
+    consoleBoot.classList.add('part');
+    document.querySelectorAll('.wrap h1, a.bouton').forEach(dechiffrer);
+    setTimeout(() => boot.classList.add('fini'), 150);
+    setTimeout(fin, 800);
   };
 
   // Mauvais mot de passe : le bouton passe en rouge « Recommencer » et bugue à chaque essai
