@@ -59,6 +59,12 @@
     return noeud;
   }
 
+  // Deux colonnes sur ordinateur : identité du dossier + index à gauche, rappel choisi à droite.
+  // Sur téléphone, les deux blocs se suivent et les rappels restent dépliables.
+  const cote = el('aside', 'fiche-cote');
+  const contenu = el('div', 'fiche-contenu');
+  fiche.append(cote, contenu);
+
   // ---------- En-tête ----------
   const etat = ep.declassifie ? 'déclassifié' : 'classifié';
   const barre = el('header', 'barre');
@@ -71,7 +77,7 @@
   const intro = el('p', 'terminal');
   intro.dataset.lines = ep.intro.join('|');
   tete.append(el('div', 'eyebrow', `Archive ${ep.numero} · ${etat}e`), titre, intro);
-  fiche.appendChild(tete);
+  cote.appendChild(tete);
 
   // ---------- Compte à rebours figé ----------
   const cible = new Date(ep.dateCible);
@@ -90,7 +96,7 @@
   const legende = el('p', 'compteur-legende');
   legende.append(el('span', `tampon${ep.declassifie ? ' valide' : ''}`, ep.declassifie ? 'Mission validée' : 'Protocole exécuté'), el('span', 'compteur-date', `${date} · il y a ${jours} jours`));
   compteur.append(cases, legende);
-  fiche.appendChild(compteur);
+  cote.appendChild(compteur);
 
   // De temps en temps, les chiffres se dérèglent une fraction de seconde
   if (!calme) {
@@ -111,6 +117,9 @@
   // ---------- Rappels ----------
   const RENDUS = { transmission, documents, recit, dossier, carte, fragments };
   const liste = el('div', 'rappels');
+  const index = el('nav', 'index');
+  index.setAttribute('aria-label', 'Rappels');
+  const entrees = [];
   ep.rappels.forEach((rappel, i) => {
     const rendu = RENDUS[rappel.type];
     if (!rendu) return;
@@ -121,8 +130,30 @@
     bloc.append(resume, corps);
     rendu(rappel, corps, bloc);
     liste.appendChild(bloc);
+
+    const entree = el('button', 'index-entree');
+    entree.type = 'button';
+    entree.append(el('span', 'rappel-num', deuxChiffres(i + 1)), el('span', null, rappel.titre));
+    const k = entrees.length;
+    entree.addEventListener('click', () => choisir(k));
+    index.appendChild(entree);
+    entrees.push({ entree, bloc, resume });
   });
-  fiche.appendChild(liste);
+  cote.appendChild(index);
+  contenu.appendChild(liste);
+
+  // Sur ordinateur : un seul rappel ouvert à la fois, choisi dans l'index
+  const large = window.matchMedia('(min-width: 1024px)');
+  let courant = 0;
+  function choisir(n) {
+    courant = n;
+    entrees.forEach(({ entree, bloc }, k) => {
+      entree.classList.toggle('actif', k === n);
+      entree.setAttribute('aria-current', k === n ? 'true' : 'false');
+      bloc.classList.toggle('courant', k === n);
+      bloc.open = k === n;
+    });
+  }
 
   // ---------- Rejouer : refusé ----------
   if (ep.rejouer) {
@@ -138,8 +169,21 @@
       reponse.textContent = ep.rejouer.refus;
     });
     pied.append(bouton, reponse);
-    fiche.appendChild(pied);
+    contenu.appendChild(pied);
   }
+
+  function disposer() {
+    const pied = fiche.querySelector('.fiche-pied');
+    entrees.forEach(({ resume }) => { resume.tabIndex = large.matches ? -1 : 0; });
+    if (large.matches) {
+      if (pied) cote.appendChild(pied);
+      choisir(courant);
+    } else if (pied) {
+      contenu.appendChild(pied);
+    }
+  }
+  disposer();
+  large.addEventListener('change', disposer);
 
   // ---------- Types de rappels ----------
 

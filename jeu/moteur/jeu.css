@@ -301,3 +301,70 @@
 }
 .semaine-ligne.valide { border-left-color: rgba(0, 255, 65, 0.45); }
 .semaine-ligne .tampon { margin-left: auto; }
+
+/* ---------- Fiche d'archive sur ordinateur : poste de consultation ---------- */
+.index { display: none; }
+@media (min-width: 1024px) {
+  .fiche {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 56px;
+    max-width: 1240px;
+    padding: 48px 32px 96px;
+  }
+  .fiche-cote { position: sticky; top: 24px; align-self: start; }
+  .fiche-tete { text-align: left; margin-bottom: 20px; }
+  .compteur { margin-bottom: 24px; padding: 14px 0 12px; }
+  .compteur-cases { justify-content: space-between; gap: 8px; }
+  .compteur-nombre { font-size: 1.9rem; }
+  .compteur-legende { flex-direction: row; justify-content: space-between; align-items: center; }
+  .compteur-legende .tampon { white-space: nowrap; }
+  .compteur-date { text-align: right; }
+
+  .index { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+  .index-entree {
+    display: flex;
+    gap: 12px;
+    padding: 12px 10px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-left: 1px solid transparent;
+    background: none;
+    color: var(--fg-dim);
+    font: 0.75rem var(--mono);
+    letter-spacing: 0.14em;
+    text-align: left;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .index-entree:hover { color: var(--fg); }
+  .index-entree:focus-visible { outline: 1px solid var(--green); outline-offset: -1px; }
+  .index-entree.actif { border-left-color: var(--green); color: #e6e6e6; background: var(--bg-2); }
+  .index-entree.actif .rappel-num { color: var(--green); }
+
+  .fiche-cote .fiche-pied { align-items: stretch; margin-top: 28px; }
+  .fiche-cote .bouton.rejouer { max-width: none; }
+  .fiche-cote .rejouer-refus { text-align: left; }
+
+  /* Zone de lecture : seul le rappel choisi est affiché, son titre sert d'en-tête */
+  .rappels { border-top: 0; }
+  .rappel { display: none; border-bottom: 0; }
+  .rappel.courant { display: block; animation: apparition-lecture 0.2s steps(3) 1; }
+  .rappel > summary { pointer-events: none; padding: 0 0 14px; margin-bottom: 20px; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .rappel > summary::after, .rappel[open] > summary::after { content: none; }
+  .rappel-corps { padding: 0; font-size: 0.9rem; max-width: 760px; }
+
+  .rappel-recit .rappel-corps { columns: 2; column-gap: 40px; max-width: none; }
+  .rappel-recit .recit { break-inside: avoid; }
+  .rappel-carte .rappel-corps { display: grid; grid-template-columns: minmax(0, 1fr) 260px; grid-template-rows: auto 1fr; gap: 0 28px; align-items: start; max-width: none; }
+  .rappel-carte .carte { grid-row: 1 / span 2; max-height: calc(100vh - 160px); object-fit: contain; }
+  .rappel-carte .carte-detail + .note { margin-top: 20px; }
+  .rappel-fragments .rappel-corps { max-width: none; }
+  .fragments { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+  .fragment { padding: 22px 8px 14px; }
+  .silhouette { width: 72px; height: 84px; }
+}
+@keyframes apparition-lecture { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .rappel.courant { animation: none; }
+}
