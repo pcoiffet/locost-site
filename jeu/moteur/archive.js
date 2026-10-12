@@ -210,7 +210,7 @@
     });
   }
 
-  // Carte schématique (SVG) : quadrillage, rivière, trajet éventuel, points touchables
+  // Carte (SVG) : fond pré-rendu ou quadrillage, rivière, trajet éventuel, points touchables
   function carte(rappel, corps) {
     const NS = 'http://www.w3.org/2000/svg';
     const { ouest, est, sud, nord } = rappel.cadre;
@@ -227,9 +227,10 @@
 
     const dessin = svg('svg', { viewBox: `0 0 ${L} ${H}`, class: 'carte', role: 'img', 'aria-label': rappel.titre });
 
-    // Quadrillage, un trait tous les 0,01°
-    for (let lon = Math.ceil(ouest * 100) / 100; lon < est; lon += 0.01) dessin.appendChild(svg('line', { x1: px(lon), y1: 0, x2: px(lon), y2: H, class: 'carte-grille' }));
-    for (let lat = Math.ceil(sud * 100) / 100; lat < nord; lat += 0.01) dessin.appendChild(svg('line', { x1: 0, y1: py(lat), x2: L, y2: py(lat), class: 'carte-grille' }));
+    // Fond de carte pré-rendu sur le même cadre (sinon quadrillage, un trait tous les 0,01°)
+    if (rappel.fond) dessin.appendChild(svg('image', { href: rappel.fond, x: 0, y: 0, width: L, height: H, preserveAspectRatio: 'none' }));
+    else for (let lon = Math.ceil(ouest * 100) / 100; lon < est; lon += 0.01) dessin.appendChild(svg('line', { x1: px(lon), y1: 0, x2: px(lon), y2: H, class: 'carte-grille' }));
+    if (!rappel.fond) for (let lat = Math.ceil(sud * 100) / 100; lat < nord; lat += 0.01) dessin.appendChild(svg('line', { x1: 0, y1: py(lat), x2: L, y2: py(lat), class: 'carte-grille' }));
 
     if (rappel.riviere) {
       dessin.appendChild(svg('polyline', { points: rappel.riviere.map(([lon, lat]) => `${px(lon)},${py(lat)}`).join(' '), class: 'carte-riviere' }));
@@ -271,7 +272,8 @@
       return g;
     });
 
-    corps.append(dessin, detail, el('p', 'note', 'Tracé de la Spree approximatif.'));
+    corps.append(dessin, detail);
+    if (rappel.source) corps.appendChild(el('p', 'note', rappel.source));
   }
 
   function fragments(rappel, corps) {

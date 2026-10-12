@@ -138,14 +138,11 @@ window.EPISODE = {
     {
       type: 'carte',
       titre: 'Carte des missions · Berlin',
-      // Cadre de la carte (degrés) et tracé approximatif de la Spree, pour se repérer.
+      // Cadre de la carte (degrés), identique à celui du fond medias/berlin.svg (rues OpenStreetMap).
       // Ajouter trajet: ['LOC-004', 'LOC-001', ...] pour relier les points dans l'ordre.
       cadre: { ouest: 13.355, est: 13.43, sud: 52.506, nord: 52.55 },
-      riviere: [
-        [13.335, 52.5225], [13.355, 52.5215], [13.368, 52.5205], [13.375, 52.5195], [13.385, 52.5205],
-        [13.39, 52.5205], [13.397, 52.5225], [13.402, 52.519], [13.408, 52.5155], [13.418, 52.513],
-        [13.432, 52.508], [13.446, 52.502],
-      ],
+      fond: '/jeu/ep01/medias/berlin.svg',
+      source: 'Fond de carte : © contributeurs OpenStreetMap (ODbL).',
       points: [
         { id: 'LOC-001', nom: 'Mur de Berlin', nomCode: 'Fragment 03-B', lat: 52.5351, lon: 13.3903, texte: 'Point de passage sur l’ancien tracé. Couloir [[nord]] accessible juste avant l’aube.' },
         { id: 'LOC-002', nom: 'Tour TV', nomCode: 'Balise Somnia', lat: 52.5208, lon: 13.4094, texte: 'Signal vertical actif depuis la tour. Réglage recommandé à 23h44 pour alignement.' },
