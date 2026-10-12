@@ -248,3 +248,23 @@
 @media (prefers-reduced-motion: reduce) {
   .destination { animation: none; }
 }
+
+/* Carte des missions (fiche d'archive) */
+.carte { display: block; width: 100%; height: auto; margin: 0 0 12px; border: 1px solid var(--line); background: var(--bg-2); }
+.carte-grille { stroke: var(--line); stroke-width: 1; }
+.carte-riviere { fill: none; stroke: #2a2a2a; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+.carte-trajet { fill: none; stroke: var(--fg-faint); stroke-width: 2; stroke-dasharray: 6 8; }
+.carte-point { cursor: pointer; outline: none; }
+.carte-zone { fill: transparent; }
+.carte-anneau { fill: none; stroke: var(--fg-dim); stroke-width: 1.5; }
+.carte-coeur { fill: #e6e6e6; }
+.carte-num { fill: var(--fg-dim); font: 22px var(--mono); }
+.carte-point.verrouille .carte-anneau { stroke: var(--red); stroke-dasharray: 4 4; }
+.carte-point.verrouille .carte-coeur { fill: var(--red); }
+.carte-point:hover .carte-anneau, .carte-point:focus-visible .carte-anneau { stroke: var(--fg); }
+.carte-point.actif .carte-anneau { stroke: var(--green); stroke-width: 2.5; }
+.carte-point.actif .carte-num { fill: var(--green); }
+.carte-detail { min-height: 4.5em; }
+.carte-detail-tete { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #e6e6e6; }
+.carte-detail-code { color: var(--fg-dim); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.carte-detail p { margin: 6px 0 0; }
