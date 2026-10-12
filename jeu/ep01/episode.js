@@ -40,8 +40,8 @@ window.EPISODE = {
         {
           titre: 'Ce que vous avez compris',
           liste: [
-            "Les week-ends 1 à 3 avaient été observés et documentés, après coup, comme des phases d'étude.",
-            "Le week-end 6 serait l'intervention. Cette fois, vous saviez qu'il s'agissait d'une expérience.",
+            "Les week-ends 1 à 4 avaient été observés et documentés, après coup, comme des phases d'étude.",
+            "Le week-end 5 serait l'intervention. Cette fois, vous saviez qu'il s'agissait d'une expérience.",
             "Les règles : ne jamais parler du Phacomochère à « lui », taire la faille du compte à rebours, attendre ses instructions.",
           ],
         },
@@ -63,6 +63,8 @@ window.EPISODE = {
         { numero: 1, lieu: 'Reims', nom: 'Éveil initial' },
         { numero: 2, lieu: 'Camping-car dans le Nord', nom: 'Consolidation mobile' },
         { numero: 3, lieu: 'Prague', nom: 'Test de cohérence' },
+        { numero: 4, lieu: 'Camping dans les Landes', nom: 'Immersion festive' },
+        { numero: 5, lieu: 'Berlin', nom: "L'intervention", valide: true },
       ],
     },
 

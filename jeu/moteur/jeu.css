@@ -299,3 +299,5 @@
 @media (prefers-reduced-motion: reduce) {
   .fragment.taupe .silhouette { animation: none; }
 }
+.semaine-ligne.valide { border-left-color: rgba(0, 255, 65, 0.45); }
+.semaine-ligne .tampon { margin-left: auto; }

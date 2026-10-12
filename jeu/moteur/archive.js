@@ -212,9 +212,10 @@
     rappel.semaines.forEach((s) => {
       // Version courte : une ligne par week-end (lieu + nom de code)
       if (s.lieu) {
-        const ligne = el('div', 'semaine-ligne');
+        const ligne = el('div', `semaine-ligne${s.valide ? ' valide' : ''}`);
         ligne.append(el('span', 'semaine-num', `WE${deuxChiffres(s.numero)}`), el('span', 'semaine-lieu', s.lieu));
         if (s.nom) ligne.appendChild(el('span', 'semaine-code', `« ${s.nom} »`));
+        if (s.valide) ligne.appendChild(el('span', 'tampon valide', 'validée'));
         corps.appendChild(ligne);
         return;
       }
