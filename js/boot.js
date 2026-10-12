@@ -25,37 +25,32 @@
   const racine = document.documentElement;
   let ouvert = false;
 
-  // Bon mot de passe : flash, l'écran s'éteint comme un vieux tube, le menu s'allume
+  // Bon mot de passe : l'écran d'accès disparaît, une barre verticale ouvre le menu
   const ouvrir = () => {
     ouvert = true;
     try { sessionStorage.setItem('locost-boot', '1'); } catch (e) {}
-    entrer.textContent = 'Accès autorisé';
-    boot.classList.add('autorise');
     mdp.blur();
-    const finir = () => {
-      arreterBruit();
-      racine.classList.add('sans-boot');
-      document.dispatchEvent(new Event('locost:entree'));
-      if (calme) return;
-      racine.classList.add('allumage');
-      const visage = document.querySelector('.visage');
-      if (visage) {
-        visage.classList.add('surgit');
-        setTimeout(() => visage.classList.remove('surgit'), 110);
-      }
-      setTimeout(() => racine.classList.remove('allumage'), 600);
-    };
-    if (calme) return setTimeout(finir, 300);
-    setTimeout(() => boot.classList.add('extinction'), 350);
-    setTimeout(finir, 350 + 420);
+    arreterBruit();
+    racine.classList.add('sans-boot');
+    document.dispatchEvent(new Event('locost:entree'));
+    if (calme) return;
+    const fente = document.createElement('div');
+    fente.className = 'fente';
+    document.body.append(fente);
+    racine.classList.add('ouverture');
+    setTimeout(() => {
+      fente.remove();
+      racine.classList.remove('ouverture');
+    }, 700);
   };
 
-  // Mauvais mot de passe : le bouton bugue et dit « Recommence »
+  // Mauvais mot de passe : le bouton passe en rouge « Recommencer » et bugue à chaque essai
   const refuser = () => {
-    entrer.textContent = 'Recommence';
-    acces.classList.remove('refuse');
+    entrer.textContent = 'Recommencer';
+    acces.classList.add('echec');
+    acces.classList.remove('bug');
     void acces.offsetWidth; // relance l'animation
-    acces.classList.add('refuse');
+    acces.classList.add('bug');
     mdp.value = '';
     mdp.focus();
   };
@@ -67,12 +62,6 @@
     if (!essai) return mdp.focus();
     if (empreinte(essai) === EMPREINTE) ouvrir();
     else refuser();
-  });
-  mdp.addEventListener('input', () => {
-    if (acces.classList.contains('refuse')) {
-      acces.classList.remove('refuse');
-      entrer.textContent = 'Entrer';
-    }
   });
 
   setTimeout(() => {
