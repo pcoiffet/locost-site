@@ -136,6 +136,26 @@ window.EPISODE = {
     },
 
     {
+      type: 'carte',
+      titre: 'Carte des missions · Berlin',
+      // Cadre de la carte (degrés), identique à celui du fond medias/berlin.svg (rues OpenStreetMap).
+      // Ajouter trajet: ['LOC-004', 'LOC-001', ...] pour relier les points dans l'ordre.
+      cadre: { ouest: 13.355, est: 13.43, sud: 52.506, nord: 52.55 },
+      fond: '/jeu/ep01/medias/berlin.svg',
+      source: 'Fond de carte : © contributeurs OpenStreetMap (ODbL).',
+      points: [
+        { id: 'LOC-001', nom: 'Mur de Berlin', nomCode: 'Fragment 03-B', lat: 52.5351, lon: 13.3903, texte: 'Point de passage sur l’ancien tracé. Couloir [[nord]] accessible juste avant l’aube.' },
+        { id: 'LOC-002', nom: 'Tour TV', nomCode: 'Balise Somnia', lat: 52.5208, lon: 13.4094, texte: 'Signal vertical actif depuis la tour. Réglage recommandé à 23h44 pour alignement.' },
+        { id: 'LOC-003', nom: 'Porte de Brandebourg', nomCode: 'Passage Ingress', lat: 52.5163, lon: 13.3777, texte: 'Portail central à verrouiller après minuit. Mot-clé de confirmation : [[ESPIGOULE-Δ]].' },
+        { id: 'LOC-004', nom: 'Prater Garten', nomCode: 'Safehouse 21H11', lat: 52.5437, lon: 13.4125, texte: 'Point relais discret sous la verrière. Phrase de passe : [[ferment-Ø]].' },
+        { id: 'LOC-005', nom: 'Zur Letzten Instanz', nomCode: 'Ravitaillement 1621', lat: 52.5186, lon: 13.4154, texte: 'Ravitaillement traditionnel. Demander le plat fantôme pour valider la présence.' },
+        { id: 'LOC-006', nom: 'Reichstag', nomCode: 'Hémicycle Theta', lat: 52.5186, lon: 13.3763, texte: 'Cache microfilm au banc nord numéro 24. Extraction rapide recommandée.' },
+        { id: 'LOC-007', nom: 'Bundestag', nomCode: 'Archive Souterr. -2', lat: 52.5205, lon: 13.3694, verrouille: true, texte: 'Informations verrouillées. Accès limité : {{17}}.' },
+        { id: 'LOC-008', nom: 'Mémorial', nomCode: 'Zone Mémoire X', lat: 52.5139, lon: 13.3795, verrouille: true, texte: 'Bloc mémoire protégé. Détails masqués jusqu’à levée du verrou.' },
+      ],
+    },
+
+    {
       type: 'fragments',
       titre: 'Fragments',
       fragments: ['FRAG-01', 'FRAG-02', 'FRAG-03', 'FRAG-04', 'FRAG-05'],

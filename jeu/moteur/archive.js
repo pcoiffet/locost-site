@@ -106,7 +106,7 @@
   }
 
   // ---------- Rappels ----------
-  const RENDUS = { transmission, documents, dossier, fragments };
+  const RENDUS = { transmission, documents, dossier, carte, fragments };
   const liste = el('div', 'rappels');
   ep.rappels.forEach((rappel, i) => {
     const rendu = RENDUS[rappel.type];
@@ -208,6 +208,72 @@
       semaine.appendChild(champs);
       corps.appendChild(semaine);
     });
+  }
+
+  // Carte (SVG) : fond pré-rendu ou quadrillage, rivière, trajet éventuel, points touchables
+  function carte(rappel, corps) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const { ouest, est, sud, nord } = rappel.cadre;
+    const cosLat = Math.cos(((sud + nord) / 2) * Math.PI / 180);
+    const L = 1000;
+    const H = Math.round(L * ((nord - sud) / ((est - ouest) * cosLat)));
+    const px = (lon) => ((lon - ouest) / (est - ouest)) * L;
+    const py = (lat) => ((nord - lat) / (nord - sud)) * H;
+    const svg = (tag, attrs) => {
+      const n = document.createElementNS(NS, tag);
+      Object.entries(attrs || {}).forEach(([k, v]) => n.setAttribute(k, v));
+      return n;
+    };
+
+    const dessin = svg('svg', { viewBox: `0 0 ${L} ${H}`, class: 'carte', role: 'img', 'aria-label': rappel.titre });
+
+    // Fond de carte pré-rendu sur le même cadre (sinon quadrillage, un trait tous les 0,01°)
+    if (rappel.fond) dessin.appendChild(svg('image', { href: rappel.fond, x: 0, y: 0, width: L, height: H, preserveAspectRatio: 'none' }));
+    else for (let lon = Math.ceil(ouest * 100) / 100; lon < est; lon += 0.01) dessin.appendChild(svg('line', { x1: px(lon), y1: 0, x2: px(lon), y2: H, class: 'carte-grille' }));
+    if (!rappel.fond) for (let lat = Math.ceil(sud * 100) / 100; lat < nord; lat += 0.01) dessin.appendChild(svg('line', { x1: 0, y1: py(lat), x2: L, y2: py(lat), class: 'carte-grille' }));
+
+    if (rappel.riviere) {
+      dessin.appendChild(svg('polyline', { points: rappel.riviere.map(([lon, lat]) => `${px(lon)},${py(lat)}`).join(' '), class: 'carte-riviere' }));
+    }
+
+    const visibles = rappel.points;
+    // Trajet seulement si l'épisode en donne un (liste d'identifiants de points dans l'ordre)
+    if (rappel.trajet) {
+      const etapes = rappel.trajet.map((id) => visibles.find((p) => p.id === id)).filter(Boolean);
+      dessin.appendChild(svg('polyline', { points: etapes.map((p) => `${px(p.lon)},${py(p.lat)}`).join(' '), class: 'carte-trajet' }));
+    }
+
+    const detail = el('div', 'carte-detail');
+    detail.setAttribute('aria-live', 'polite');
+    detail.appendChild(el('p', 'note', 'Touchez un point pour lire la mission.'));
+
+    const groupes = visibles.map((p, i) => {
+      const g = svg('g', { class: `carte-point${p.verrouille ? ' verrouille' : ''}`, tabindex: 0, role: 'button', 'aria-label': `${p.id}, ${p.nom}` });
+      g.append(
+        svg('circle', { cx: px(p.lon), cy: py(p.lat), r: 26, class: 'carte-zone' }),
+        svg('circle', { cx: px(p.lon), cy: py(p.lat), r: 9, class: 'carte-anneau' }),
+        svg('circle', { cx: px(p.lon), cy: py(p.lat), r: 3.5, class: 'carte-coeur' }),
+      );
+      const num = svg('text', { x: px(p.lon) + 14, y: py(p.lat) - 12, class: 'carte-num' });
+      num.textContent = deuxChiffres(i + 1);
+      g.appendChild(num);
+      const ouvrir = () => {
+        groupes.forEach((autre) => autre.classList.remove('actif'));
+        g.classList.add('actif');
+        detail.textContent = '';
+        const tete = el('div', 'carte-detail-tete');
+        tete.append(el('span', null, `${p.id} · ${p.nom}`), el('span', 'carte-detail-code', p.nomCode));
+        detail.append(tete, el('div', 'semaine-coord', `${p.lat.toFixed(4)}°N ${p.lon.toFixed(4)}°E`), paragraphe('p', null, p.texte));
+        if (p.verrouille) detail.appendChild(el('p', 'fragments-refus', 'Accès verrouillé.'));
+      };
+      g.addEventListener('click', ouvrir);
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrir(); } });
+      dessin.appendChild(g);
+      return g;
+    });
+
+    corps.append(dessin, detail);
+    if (rappel.source) corps.appendChild(el('p', 'note', rappel.source));
   }
 
   function fragments(rappel, corps) {
