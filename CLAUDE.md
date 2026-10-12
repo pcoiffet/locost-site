@@ -8,3 +8,4 @@
 - Le dépôt est public (GitHub Pages gratuit) : aucun secret, clé d'API ou donnée privée dans le code.
 - `qui-ma-troll/index.html` est un export de l'artifact https://claude.ai/artifact/VNbGXhxESHp1WJKxEQgVP6 ; sa DA (or « Hextech ») est volontairement différente pour l'instant.
 - Anciennes versions du jeu, à utiliser comme réserve d'idées, d'images et de sons : `pcoiffet/LocostV2.0` et `pcoiffet/Locost`.
+- Après toute modification de `css/` ou `js/`, incrémenter le `?v=N` des liens dans les pages HTML : GitHub Pages met ces fichiers en cache 10 minutes, sinon les visiteurs mélangent ancienne et nouvelle version.
