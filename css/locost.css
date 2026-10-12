@@ -369,21 +369,56 @@ a.bouton:hover, a.bouton:focus-visible { border-color: var(--fg-dim); color: #ff
   transition: border-color 0.2s, color 0.2s;
 }
 .boot-entrer:hover, .boot-entrer:focus-visible { border-color: var(--fg-dim); color: #fff; outline: none; }
-.boot-erreur {
-  min-height: 1.4em;
-  margin: 0;
-  color: var(--red);
-  opacity: 0.75;
-  font-size: 0.7rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
+/* Mauvais mot de passe : le champ tremble, le bouton bugue en « Recommence » */
+.boot-acces.refuse .boot-mdp { border-bottom-color: rgba(255, 42, 79, 0.6); animation: tremble 0.35s steps(4) 1; }
+.boot-acces.refuse .boot-entrer {
+  border-color: rgba(255, 42, 79, 0.55);
+  color: #fff;
+  animation: bug 0.5s steps(1) 1;
 }
-.boot-acces.refuse { animation: tressaille 0.3s steps(2) 1; }
-.boot-acces.refuse .boot-mdp { border-bottom-color: rgba(255, 42, 79, 0.6); }
+@keyframes tremble {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+@keyframes bug {
+  0% { transform: translateX(-4px) skewX(-8deg); text-shadow: 3px 0 var(--red), -3px 0 var(--cyan); clip-path: inset(0 0 45% 0); }
+  15% { transform: translateX(5px); text-shadow: -3px 0 var(--red), 3px 0 var(--cyan); clip-path: inset(40% 0 0 0); }
+  30% { transform: translateX(-2px) skewX(6deg); text-shadow: 2px 0 var(--red), -2px 0 var(--cyan); clip-path: none; filter: invert(1); }
+  45% { transform: translateX(3px); text-shadow: -1px 0 var(--red), 1px 0 var(--cyan); filter: none; }
+  60% { transform: none; text-shadow: 1px 0 var(--red), -1px 0 var(--cyan); }
+  100% { transform: none; text-shadow: none; }
+}
+
+/* Bon mot de passe : flash, extinction façon vieux téléviseur, puis allumage du menu */
+.boot.autorise .boot-entrer { border-color: #fff; color: #000; background: #fff; }
+.boot.autorise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+  animation: flash 0.35s ease-out 1 forwards;
+}
+@keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+.boot.extinction { animation: extinction 0.42s ease-in 1 forwards; }
+@keyframes extinction {
+  0% { transform: none; filter: none; }
+  55% { transform: scale(1, 0.006); filter: brightness(4); }
+  100% { transform: scale(0, 0.006); filter: brightness(6); }
+}
+.allumage .barre, .allumage .wrap { animation: allumage 0.5s ease-out 1; }
+@keyframes allumage {
+  0% { transform: scale(0.2, 0.006); filter: brightness(6); opacity: 0.6; }
+  45% { transform: scale(1, 0.01); filter: brightness(3); opacity: 1; }
+  100% { transform: none; filter: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before, .glitch::after, .filigrane::before, .filigrane::after, .fond::before { display: none; }
-  .filigrane, a.bouton:hover, .bouton.censure.refuse, .boot-acces.refuse { animation: none; }
+  .filigrane, a.bouton:hover, .bouton.censure.refuse, .boot-acces.refuse, .boot-acces.refuse .boot-mdp, .boot-acces.refuse .boot-entrer { animation: none; }
+  .boot.autorise::after, .boot.extinction, .allumage .barre, .allumage .wrap { animation: none; }
   .roue { animation-duration: 6s; }
   .visage { display: none; }
 }

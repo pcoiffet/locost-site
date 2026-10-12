@@ -5,32 +5,54 @@
   const boot = document.querySelector('.boot');
   if (!boot || document.documentElement.classList.contains('sans-boot')) return;
 
-  // Empreinte SHA-256 du mot de passe, pour ne pas l'écrire en clair
-  const EMPREINTE = '47916b1ae9ca184faf20be5e659382cefeca7a929cd5d767c2e08c093a14df0c';
+  // Empreinte FNV-1a du mot de passe, pour ne pas l'écrire en clair
+  const EMPREINTE = '1edb67e8';
+  const empreinte = (texte) => {
+    let h = 0x811c9dc5;
+    for (const c of texte) {
+      h ^= c.charCodeAt(0);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(16);
+  };
 
+  const calme = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const consoleBoot = boot.querySelector('.boot-console');
   const acces = boot.querySelector('.boot-acces');
   const mdp = boot.querySelector('.boot-mdp');
-  const erreur = boot.querySelector('.boot-erreur');
+  const entrer = boot.querySelector('.boot-entrer');
   const arreterBruit = lancerBruit(boot.querySelector('.boot-bruit'));
+  const racine = document.documentElement;
+  let ouvert = false;
 
-  async function empreinte(texte) {
-    const octets = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texte));
-    return [...new Uint8Array(octets)].map((o) => o.toString(16).padStart(2, '0')).join('');
-  }
-
-  const fermer = () => {
+  // Bon mot de passe : flash, l'écran s'éteint comme un vieux tube, le menu s'allume
+  const ouvrir = () => {
+    ouvert = true;
     try { sessionStorage.setItem('locost-boot', '1'); } catch (e) {}
-    boot.classList.add('fini');
-    document.dispatchEvent(new Event('locost:entree'));
-    setTimeout(() => {
+    entrer.textContent = 'Accès autorisé';
+    boot.classList.add('autorise');
+    mdp.blur();
+    const finir = () => {
       arreterBruit();
-      document.documentElement.classList.add('sans-boot');
-    }, 600);
+      racine.classList.add('sans-boot');
+      document.dispatchEvent(new Event('locost:entree'));
+      if (calme) return;
+      racine.classList.add('allumage');
+      const visage = document.querySelector('.visage');
+      if (visage) {
+        visage.classList.add('surgit');
+        setTimeout(() => visage.classList.remove('surgit'), 110);
+      }
+      setTimeout(() => racine.classList.remove('allumage'), 600);
+    };
+    if (calme) return setTimeout(finir, 300);
+    setTimeout(() => boot.classList.add('extinction'), 350);
+    setTimeout(finir, 350 + 420);
   };
 
+  // Mauvais mot de passe : le bouton bugue et dit « Recommence »
   const refuser = () => {
-    erreur.textContent = 'accès refusé';
+    entrer.textContent = 'Recommence';
     acces.classList.remove('refuse');
     void acces.offsetWidth; // relance l'animation
     acces.classList.add('refuse');
@@ -38,14 +60,20 @@
     mdp.focus();
   };
 
-  acces.addEventListener('submit', async (e) => {
+  acces.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (ouvert) return;
     const essai = mdp.value.trim().toLowerCase();
     if (!essai) return mdp.focus();
-    if ((await empreinte(essai)) === EMPREINTE) fermer();
+    if (empreinte(essai) === EMPREINTE) ouvrir();
     else refuser();
   });
-  mdp.addEventListener('input', () => { erreur.textContent = ''; });
+  mdp.addEventListener('input', () => {
+    if (acces.classList.contains('refuse')) {
+      acces.classList.remove('refuse');
+      entrer.textContent = 'Entrer';
+    }
+  });
 
   setTimeout(() => {
     consoleBoot.classList.add('pret');
