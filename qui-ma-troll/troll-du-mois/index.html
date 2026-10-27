@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Troll du mois</title>
+<meta name="description" content="Le groupe désigne le plus gros troll du mois sur League of Legends.">
+<link rel="icon" href="/assets/images/locost-gris.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/qui-ma-troll/troll-du-mois/troll-du-mois.css?v=1">
+</head>
+<body>
+<div class="app" id="app">
+  <header class="haut">
+    <div class="marque"><a class="retour" href="/qui-ma-troll/">‹ Le rapport</a><b>TROLL DU MOIS</b><span id="mois"></span></div>
+    <div class="compteur" id="compteur" aria-live="polite"></div>
+    <div class="compte-discord" id="compte"></div>
+  </header>
+  <section class="bandeau" id="bandeau" aria-live="polite"></section>
+
+  <!-- Semaine de vote : les suspects un par un -->
+  <div id="vue-vote" hidden>
+    <section class="scene" id="scene" aria-roledescription="carrousel" aria-label="Les suspects, un par un">
+      <button class="nav prec" id="prec" type="button" aria-label="Joueur précédent">‹</button>
+      <div class="stage" id="stage"></div>
+      <article class="fiche" id="fiche" aria-live="polite"></article>
+      <button class="nav suiv" id="suiv" type="button" aria-label="Joueur suivant">›</button>
+    </section>
+    <nav class="points" id="points" aria-label="Aller à un joueur"></nav>
+    <p class="aide" id="aide"></p>
+  </div>
+
+  <!-- Hors semaine de vote : le dernier Troll du mois -->
+  <section class="dernier" id="vue-dernier" hidden>
+    <div class="stage" id="stage-dernier"></div>
+    <div class="dernier-texte" id="texte-dernier"></div>
+  </section>
+
+  <p class="message" id="message" hidden></p>
+  <section class="historique" id="historique" aria-labelledby="titre-histo">
+    <h2 id="titre-histo">Les Trolls du mois</h2>
+    <ol id="liste-histo"></ol>
+  </section>
+</div>
+
+<div class="revel" id="revelation" role="dialog" aria-modal="true" aria-label="Révélation du Troll du mois" hidden>
+  <div id="rev-corps"></div>
+  <div class="rev-actions" id="rev-actions"><button type="button" id="rev-fermer" class="discret">Quitter</button><button type="button" id="rev-suite">Suivant</button></div>
+</div>
+<canvas class="toile-sel" id="sel" aria-hidden="true"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="/qui-ma-troll/troll-du-mois/config.js?v=1"></script>
+<script src="/qui-ma-troll/troll-du-mois/troll-du-mois.js?v=1"></script>
+</body>
+</html>
