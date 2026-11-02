@@ -1,32 +1,35 @@
-/* Épisode 02 · Le Bureau des Doublons : DA « formulaire officiel » propre à cet épisode
-   (papier crème, encre, tampons rouges), choisie par Paul en remplacement de la DA sombre du site.
+/* Épisode 02 · Le Bureau des Doublons : DA « Bureau de nuit » (formulaires administratifs sur fond
+   anthracite, texte gris-beige, tampons rouges, photos en tirages clairs), choisie par Paul le 2 nov. 2026.
    Redéfinit les variables de /css/locost.css : les composants de jeu.css suivent d'eux-mêmes. */
 body.bureau {
-  --bg: #efe8d8;
-  --bg-2: #e7dec9;
-  --fg: #1f1c17;
-  --fg-dim: #5a5246;
-  --fg-faint: #968c79;
-  --line: #cdbfa3;
-  --green: #b0241b; /* l'accent devient le rouge des tampons */
-  --green-dim: rgba(176, 36, 27, 0.2);
-  --red: #b0241b;
+  --bg: #171614;
+  --bg-2: #1e1c19;
+  --fg: #d6cfc0; /* gris-beige : jamais de blanc pur */
+  --fg-dim: #9a917f;
+  --fg-faint: #6a6355;
+  --line: #3a362f;
+  --papier: #1f1d1a;
+  --tirage: #e8e0cc; /* les photos restent des tirages clairs */
+  --encre-tirage: #5a5246;
+  --encart: rgba(255, 255, 255, 0.04);
+  --green: #c94a3c; /* l'accent devient le rouge des tampons */
+  --green-dim: rgba(201, 74, 60, 0.2);
+  --red: #c94a3c;
   --cyan: #24407a;
   --mono: "Courier New", Courier, "Nimbus Mono PS", monospace;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.5), transparent 60%),
-    radial-gradient(ellipse at 100% 100%, rgba(120, 96, 50, 0.12), transparent 55%),
+    radial-gradient(ellipse at 20% 0%, rgba(255, 240, 210, 0.04), transparent 60%),
     var(--bg);
   color: var(--fg);
   font-size: 15.5px;
 }
-html:has(body.bureau) { background: var(--bg, #efe8d8); }
+html:has(body.bureau) { background: #171614; }
 body.bureau::after { background: none; } /* pas de lignes de balayage sur du papier */
 body.bureau ::selection { background: var(--red); color: #fff; }
 
 /* En-tête administratif */
-.bureau .barre { background: var(--fg); color: #efe8d8; border-bottom: 0; letter-spacing: 0.12em; }
-.bureau .barre .point { color: #efe8d8; }
+.bureau .barre { background: #0f0e0c; color: var(--fg-dim); border-bottom: 0; letter-spacing: 0.12em; }
+.bureau .barre .point { color: var(--fg-dim); }
 .bureau .barre .point::before { content: "■ "; color: var(--red); }
 .bureau .fiche-tete { padding-bottom: 20px; border-bottom: 3px double var(--fg); }
 .bureau .glitch { color: var(--fg); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -45,7 +48,7 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 
 /* Fiches des candidats */
 .bureau .roles-choix { grid-template-columns: 1fr; max-width: 420px; gap: 18px; }
-.fiche-candidat { position: relative; padding: 18px 18px 16px; border: 1.5px solid var(--fg); background: rgba(255, 255, 255, 0.35); text-align: left; }
+.fiche-candidat { position: relative; padding: 18px 18px 16px; border: 1.5px solid var(--fg); background: var(--papier); text-align: left; }
 .fiche-candidat::before { content: "DOSSIER"; position: absolute; top: -9px; left: 12px; padding: 0 6px; background: var(--bg); color: var(--red); font-size: 0.65rem; letter-spacing: 0.25em; font-weight: 700; }
 .fiche-candidat h2 { margin: 0 0 10px; font-size: 1.1rem; letter-spacing: 0.04em; }
 .fiche-candidat ul { margin: 0 0 16px; padding: 0; list-style: none; color: var(--fg-dim); font-size: 0.82rem; }
@@ -63,11 +66,11 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 
 /* Épreuves */
 .bureau .acte { color: var(--fg); font-weight: 700; border-bottom: 1.5px solid var(--fg); }
-.bureau .mission-texte.consigne { background: rgba(255, 255, 255, 0.45); border-left: 3px solid var(--fg); }
+.bureau .mission-texte.consigne { background: var(--encart); border-left: 3px solid var(--fg); }
 .bureau .mission-role { border-color: var(--fg); color: var(--fg); }
 .bureau .mission-etat.actif::before { content: "● "; color: var(--red); }
-.bureau .code-champ { background: rgba(255, 255, 255, 0.6); border: 0; border-bottom: 1.5px solid var(--fg); color: var(--fg); }
-.bureau .code-champ:focus { outline: none; border-bottom-color: var(--red); background: #fff; }
+.bureau .code-champ { background: var(--encart); border: 0; border-bottom: 1.5px solid var(--fg); color: var(--fg); }
+.bureau .code-champ:focus { outline: none; border-bottom-color: var(--red); background: rgba(255, 255, 255, 0.07); }
 .bureau .joker-texte { border-color: var(--fg-dim); }
 
 /* Tampon rouge, de travers comme un vrai */
@@ -107,10 +110,10 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 .verdict .bouton { align-self: center; }
 
 /* Pièces à conviction : photo d'identité en noir et blanc */
-.bureau .photo { border: 1.5px solid var(--fg); background: #fff; padding: 8px 8px 0; }
+.bureau .photo { border: 1.5px solid var(--fg); background: var(--tirage); padding: 8px 8px 0; }
 .bureau .photo img { filter: grayscale(1) contrast(1.15) sepia(0.15); }
 .bureau .photo::after { content: none; }
-.bureau .dossier-mot { border-color: var(--fg); background: rgba(255, 255, 255, 0.45); }
+.bureau .dossier-mot { border-color: var(--fg-dim); background: var(--encart); }
 .bureau .cadran { border-color: var(--fg); }
 .bureau .cadran::before { background: var(--red); }
 .bureau .cadran-aiguille { background: var(--fg); }
@@ -120,9 +123,9 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 
 /* ---------- Fiches de contrôle (douane) ---------- */
 .douane-liste { display: flex; flex-direction: column; gap: 22px; margin-bottom: 8px; }
-.fiche-candidat.douane { padding: 0; background: #f6f1e4; box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(60, 40, 10, 0.12); }
+.fiche-candidat.douane { padding: 0; background: var(--papier); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
 .fiche-candidat.douane::before { content: "DOUANE"; z-index: 1; }
-.douane-tete { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 14px 14px 10px; border-bottom: 1.5px solid var(--fg); background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(176, 36, 27, 0.05) 6px 7px); }
+.douane-tete { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 14px 14px 10px; border-bottom: 1.5px solid var(--fg); background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(255, 255, 255, 0.035) 6px 7px); }
 .douane-pays { grid-column: 1 / -1; color: var(--fg-dim); font-size: 0.66rem; letter-spacing: 0.18em; }
 .douane-titre { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .douane-numero { color: var(--red); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
@@ -138,12 +141,12 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 @media (max-width: 360px) { .douane-corps { grid-template-columns: 84px 1fr; } }
 
 /* ---------- Photos collées sur le papier ---------- */
-.cliche { position: relative; margin: 14px auto; padding: 8px 8px 10px; background: #fbf8f0; box-shadow: 0 1px 2px rgba(40, 30, 10, 0.25), 0 8px 18px rgba(60, 40, 10, 0.16); transform: rotate(-1.6deg); max-width: 280px; }
+.cliche { position: relative; margin: 14px auto; padding: 8px 8px 10px; background: var(--tirage); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(0, 0, 0, 0.45); transform: rotate(-1.6deg); max-width: 280px; }
 .cliche img { display: block; width: 100%; height: auto; filter: sepia(0.25) contrast(1.05) saturate(0.85); }
-.cliche figcaption { margin-top: 6px; color: var(--fg-dim); font-size: 0.62rem; letter-spacing: 0.08em; text-align: center; font-style: italic; }
+.cliche figcaption { margin-top: 6px; color: var(--encre-tirage); font-size: 0.62rem; letter-spacing: 0.08em; text-align: center; font-style: italic; }
 .cliche:nth-of-type(even) { transform: rotate(1.4deg); }
 .cliche input { display: none; }
-.cliche .lien-console { display: block; margin: 6px auto 0; font-size: 0.66rem; }
+.cliche .lien-console { color: var(--encre-tirage); display: block; margin: 6px auto 0; font-size: 0.66rem; }
 /* Scotch : bande translucide en haut */
 .cliche.scotch::before { content: ""; position: absolute; top: -10px; left: 50%; width: 86px; height: 22px; margin-left: -43px; background: rgba(240, 232, 200, 0.62); border-left: 1px dashed rgba(0, 0, 0, 0.06); border-right: 1px dashed rgba(0, 0, 0, 0.06); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); transform: rotate(-3deg); }
 /* Agrafe : barre métallique et ses deux pattes */
@@ -168,3 +171,8 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 .piece-manquante p { margin: 0; font-size: 0.85rem; color: var(--fg-dim); }
 .piece-manquante input { display: none; }
 .bureau .dossier-mot { color: var(--fg); }
+
+/* Textes codés en clair pour le site sombre dans jeu.css : ils suivent l'encre de l'épisode */
+.bureau .progression-compte, .bureau .synchro-chiffres, .bureau .code-champ, .bureau .compteur-nombre { color: var(--fg); }
+.bureau .cadran-aiguille { background: var(--fg); }
+.bureau .rappel > summary:hover .rappel-titre, .bureau .bouton.role:hover, .bureau .bouton.choix-option:hover { color: var(--fg); }
