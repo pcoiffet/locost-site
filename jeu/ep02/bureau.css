@@ -1,0 +1,119 @@
+/* Épisode 02 · Le Bureau des Doublons : DA « formulaire officiel » propre à cet épisode
+   (papier crème, encre, tampons rouges), choisie par Paul en remplacement de la DA sombre du site.
+   Redéfinit les variables de /css/locost.css : les composants de jeu.css suivent d'eux-mêmes. */
+body.bureau {
+  --bg: #efe8d8;
+  --bg-2: #e7dec9;
+  --fg: #1f1c17;
+  --fg-dim: #5a5246;
+  --fg-faint: #968c79;
+  --line: #cdbfa3;
+  --green: #b0241b; /* l'accent devient le rouge des tampons */
+  --green-dim: rgba(176, 36, 27, 0.2);
+  --red: #b0241b;
+  --cyan: #24407a;
+  --mono: "Courier New", Courier, "Nimbus Mono PS", monospace;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgba(120, 96, 50, 0.12), transparent 55%),
+    var(--bg);
+  color: var(--fg);
+  font-size: 15.5px;
+}
+html:has(body.bureau) { background: var(--bg, #efe8d8); }
+body.bureau::after { background: none; } /* pas de lignes de balayage sur du papier */
+body.bureau ::selection { background: var(--red); color: #fff; }
+
+/* En-tête administratif */
+.bureau .barre { background: var(--fg); color: #efe8d8; border-bottom: 0; letter-spacing: 0.12em; }
+.bureau .barre .point { color: #efe8d8; }
+.bureau .barre .point::before { content: "■ "; color: var(--red); }
+.bureau .fiche-tete { padding-bottom: 20px; border-bottom: 3px double var(--fg); }
+.bureau .glitch { color: var(--fg); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.bureau .glitch::before, .bureau .glitch::after { content: none; }
+.bureau .fiche-tete .eyebrow { color: var(--fg-dim); }
+.bureau .terminal { color: var(--fg-dim); }
+.bureau .terminal::after { color: var(--red); }
+.bureau .eyebrow { color: var(--fg-dim); }
+
+/* Boutons : encre pleine, inversés au survol */
+.bureau .bouton { border: 1.5px solid var(--fg); background: transparent; color: var(--fg); }
+.bureau .bouton:hover, .bureau a.bouton:hover, .bureau .bouton:focus-visible { background: var(--fg); color: var(--bg); border-color: var(--fg); animation: none; }
+.bureau .bouton:disabled { border-color: var(--fg-faint); color: var(--fg-faint); background: transparent; }
+.bureau .lien-console { color: var(--fg-dim); }
+.bureau .retour { background: var(--bg); border-color: var(--fg); color: var(--fg); }
+
+/* Fiches des candidats */
+.bureau .roles-choix { grid-template-columns: 1fr; max-width: 420px; gap: 18px; }
+.fiche-candidat { position: relative; padding: 18px 18px 16px; border: 1.5px solid var(--fg); background: rgba(255, 255, 255, 0.35); text-align: left; }
+.fiche-candidat::before { content: "DOSSIER"; position: absolute; top: -9px; left: 12px; padding: 0 6px; background: var(--bg); color: var(--red); font-size: 0.65rem; letter-spacing: 0.25em; font-weight: 700; }
+.fiche-candidat h2 { margin: 0 0 10px; font-size: 1.1rem; letter-spacing: 0.04em; }
+.fiche-candidat ul { margin: 0 0 16px; padding: 0; list-style: none; color: var(--fg-dim); font-size: 0.82rem; }
+.fiche-candidat li { padding: 4px 0; border-bottom: 1px dotted var(--line); }
+.fiche-candidat .bouton { width: 100%; }
+
+/* Registre de points */
+.registre { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; padding: 10px 12px; border: 1.5px solid var(--fg); }
+.registre-points { display: flex; gap: 16px; }
+.registre-ligne { display: flex; gap: 6px; align-items: baseline; color: var(--fg-dim); font-size: 0.8rem; }
+.registre-ligne strong { color: var(--fg); font-size: 1.15rem; }
+.registre-ligne.moi strong { color: var(--red); }
+.bureau .progression-jauge span.plein { background: var(--red); }
+.bureau .progression-jauge span.ouvert { background: var(--fg-faint); }
+
+/* Épreuves */
+.bureau .acte { color: var(--fg); font-weight: 700; border-bottom: 1.5px solid var(--fg); }
+.bureau .mission-texte.consigne { background: rgba(255, 255, 255, 0.45); border-left: 3px solid var(--fg); }
+.bureau .mission-role { border-color: var(--fg); color: var(--fg); }
+.bureau .mission-etat.actif::before { content: "● "; color: var(--red); }
+.bureau .code-champ { background: rgba(255, 255, 255, 0.6); border: 0; border-bottom: 1.5px solid var(--fg); color: var(--fg); }
+.bureau .code-champ:focus { outline: none; border-bottom-color: var(--red); background: #fff; }
+.bureau .joker-texte { border-color: var(--fg-dim); }
+
+/* Tampon rouge, de travers comme un vrai */
+.bureau .tampon, .bureau .tampon.valide {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 3px double var(--red);
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  opacity: 0.88;
+}
+
+/* Journal de l'inspecteur */
+.bureau .log-ligne { color: var(--fg); }
+.bureau .log-ligne.systeme { color: var(--fg-dim); }
+.log-ligne.zhang .log-prefixe, .log-ligne.faux .log-prefixe { color: var(--red); font-weight: 700; }
+
+/* Duel */
+.duel { width: 100%; margin-top: 8px; padding: 14px; border: 1.5px dashed var(--fg); }
+.duel-titre { margin: 0 0 10px; font-size: 0.8rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); }
+.duel-boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.duel-boutons .bouton:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.duel-resultat { margin: 0 0 8px; font-weight: 700; }
+.duel-suite { display: flex; flex-direction: column; gap: 8px; }
+.duel .synchro-jauge span, .bureau .synchro-jauge span { background: var(--red); }
+
+/* Verdict */
+.verdict { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 12px; padding-top: 14px; border-top: 3px double var(--fg); }
+.registre-code strong { color: var(--red); font-size: 1.4rem; letter-spacing: 0.2em; }
+.verdict-annonce { text-align: center; padding: 16px 8px; border: 1.5px solid var(--fg); }
+.verdict-nom { margin: 4px 0; font-size: 1.5rem; font-weight: 700; color: var(--red); }
+.verdict-score { margin: 0; color: var(--fg-dim); font-size: 0.8rem; }
+.certificat { width: 100%; max-width: 420px; align-self: center; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(60, 40, 10, 0.18); }
+.verdict .bouton { align-self: center; }
+
+/* Pièces à conviction : photo d'identité en noir et blanc */
+.bureau .photo { border: 1.5px solid var(--fg); background: #fff; padding: 8px 8px 0; }
+.bureau .photo img { filter: grayscale(1) contrast(1.15) sepia(0.15); }
+.bureau .photo::after { content: none; }
+.bureau .dossier-mot { border-color: var(--fg); background: rgba(255, 255, 255, 0.45); }
+.bureau .cadran { border-color: var(--fg); }
+.bureau .cadran::before { background: var(--red); }
+.bureau .cadran-aiguille { background: var(--fg); }
+.bureau .signal span { background: var(--red); }
+/* Le lien de retour descend en bas de page pour ne pas masquer les formulaires */
+.bureau .retour { position: static; display: block; width: max-content; margin: 0 auto 32px; }

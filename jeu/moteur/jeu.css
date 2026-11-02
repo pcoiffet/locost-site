@@ -368,3 +368,117 @@
 @media (prefers-reduced-motion: reduce) {
   .rappel.courant { animation: none; }
 }
+
+/* ---------- Épisode jouable à deux (moteur missions.js) ---------- */
+.fiche.jeu { max-width: 640px; padding-bottom: 96px; }
+.jeu .transmission { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.log-ligne.muraille .log-prefixe { color: var(--red); }
+
+/* Choix du rôle */
+.roles { text-align: center; padding: 8px 0 24px; }
+.roles-texte { color: var(--fg-dim); font-size: 0.85rem; max-width: 34ch; margin: 0 auto 20px; }
+.roles-choix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 320px; margin: 0 auto 14px; }
+.bouton.role { cursor: pointer; padding: 20px 10px; font-size: 0.95rem; }
+.bouton.role:hover { border-color: var(--fg-dim); color: #fff; }
+
+/* Progression */
+.progression { margin: 0 0 8px; }
+.progression-tete { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.progression-compte { color: #e6e6e6; font-variant-numeric: tabular-nums; letter-spacing: 0.1em; }
+.progression-jauge { display: flex; gap: 4px; }
+.progression-jauge span { flex: 1; height: 4px; background: var(--line); }
+.progression-jauge span.ouvert { background: var(--fg-faint); }
+.progression-jauge span.plein { background: var(--green); }
+.progression-prochain { margin: 10px 0 0; color: var(--fg-dim); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+
+/* Liste des missions */
+.acte { margin: 28px 0 0; padding: 0 4px 8px; color: var(--fg-dim); font-size: 0.68rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+.mission > summary { display: flex; align-items: baseline; gap: 12px; text-transform: none; letter-spacing: 0.02em; font-size: 0.88rem; }
+.mission .rappel-titre { flex: 1; }
+.mission.ferme .rappel-titre { color: var(--fg-faint); }
+.mission-etat { color: var(--fg-faint); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.mission-etat.actif { color: var(--fg); }
+.mission-etat.actif::before { content: "● "; color: var(--green); animation: blink 1.6s steps(1) infinite; }
+.mission-etat.valide { color: var(--green); }
+.mission.valide .rappel-num { color: var(--green); }
+.mission-lieu { margin: 0 0 8px; color: var(--fg-dim); font-size: 0.72rem; letter-spacing: 0.08em; }
+.mission-texte { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mission-texte.consigne { padding: 10px 12px; border-left: 1px solid var(--fg-faint); background: var(--bg-2); line-height: 1.5; }
+.mission-role { display: inline-block; margin: 0 0 12px; padding: 2px 8px; border: 1px solid var(--line); color: var(--fg-dim); font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; }
+
+/* Saisie du code */
+.code { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 4px; }
+.code-champ {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--fg-faint);
+  background: #000;
+  color: #e6e6e6;
+  font: 1rem var(--mono); /* 16px: évite le zoom automatique d'iOS */
+  letter-spacing: 0.08em;
+}
+.code-champ:focus { outline: 1px solid var(--green); outline-offset: -1px; }
+.bouton.code-envoyer { padding: 12px 14px; font-size: 0.7rem; letter-spacing: 0.18em; cursor: pointer; }
+.code-retour, .joker { grid-column: 1 / -1; }
+.code-retour { min-height: 1.4em; margin: 0; color: var(--fg-dim); font-size: 0.72rem; letter-spacing: 0.1em; }
+.code-retour.bon { color: var(--green); }
+.code-retour.faux { color: var(--red); }
+.code.refuse .code-champ { border-color: rgba(255, 42, 79, 0.6); animation: tressaille 0.3s steps(2) 1; }
+.joker-texte { margin: 0; padding: 8px 12px; border: 1px dashed var(--fg-faint); color: var(--fg-dim); font-size: 0.8rem; }
+.lien-console.discret { color: var(--fg-faint); }
+
+/* Capteurs */
+.verrou { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.verrou .bouton { cursor: pointer; }
+.verrou .bouton:disabled { color: var(--fg-dim); cursor: default; }
+.verrou-etat { margin: 0; min-height: 1.4em; color: var(--fg-dim); font-size: 0.75rem; letter-spacing: 0.1em; font-variant-numeric: tabular-nums; }
+.verrou-etat.bon { color: var(--green); }
+.signal { height: 6px; border: 1px solid var(--line); }
+.signal span { display: block; width: 3%; height: 100%; background: var(--fg-dim); transition: width 0.3s; }
+.cadran { position: relative; width: 140px; height: 140px; margin: 4px auto; border: 1px solid var(--fg-faint); border-radius: 50%; }
+.cadran::before { content: ""; position: absolute; left: 50%; top: -1px; width: 1px; height: 14px; background: var(--green); }
+.cadran-aiguille { position: absolute; left: calc(50% - 1px); top: 14px; width: 2px; height: 56px; background: #e6e6e6; transform-origin: 50% 100%; transition: transform 0.15s; }
+
+/* Synchro */
+.synchro { margin-bottom: 4px; }
+.synchro-chiffres { margin: 4px 0 8px; color: #e6e6e6; font-size: 2.6rem; font-weight: 600; letter-spacing: 0.3em; font-variant-numeric: tabular-nums; }
+.synchro-jauge { height: 2px; margin-bottom: 14px; background: var(--line); }
+.synchro-jauge span { display: block; height: 100%; background: var(--green); }
+
+/* Choix à l'aveugle */
+.choix { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.choix .eyebrow { margin: 6px 0 0; }
+.bouton.choix-option { cursor: pointer; letter-spacing: 0.12em; }
+.bouton.choix-option:hover { border-color: var(--fg-dim); color: #fff; }
+.choix-moi { margin: 0; color: var(--fg-dim); font-size: 0.8rem; }
+
+/* Mission réussie */
+.recompense { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.piece { margin: 0; color: var(--fg-dim); }
+.piece strong { color: var(--green); font-weight: 400; }
+.recompense .doc { margin: 0; }
+.recompense .log { min-height: 0; }
+.photo { position: relative; margin: 0; max-width: 260px; border: 1px solid var(--line); }
+.photo img { display: block; width: 100%; filter: grayscale(1) contrast(1.25) brightness(0.9); }
+.photo::after { content: ""; position: absolute; inset: 0 0 1.6em; background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px); pointer-events: none; }
+.photo figcaption { padding: 4px 8px; color: var(--fg-faint); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Dossier de l'agent */
+.dossier { margin-top: 12px; }
+.dossier .eyebrow { margin: 14px 0 8px; }
+.dossier-mots { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.dossier-mot { padding: 2px 8px; border: 1px solid var(--line); color: #e6e6e6; }
+.jeu-pied { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 40px; }
+@media (prefers-reduced-motion: reduce) {
+  .mission-etat.actif::before { animation: none; }
+}
+/* Sur ordinateur, l'épisode jouable garde une seule colonne (la mise en page « poste de consultation » est réservée aux archives) */
+@media (min-width: 1024px) {
+  .fiche.jeu { display: block; max-width: 680px; padding: 48px 16px 96px; }
+  .jeu .fiche-tete { text-align: center; }
+  .jeu .rappel { display: block; border-bottom: 1px solid var(--line); }
+  .jeu .rappel > summary { pointer-events: auto; padding: 16px 4px; margin-bottom: 0; border-bottom: 0; font-size: 0.88rem; }
+  .jeu .rappel > summary::after { content: "+"; }
+  .jeu .rappel[open] > summary::after { content: "−"; }
+  .jeu .rappel-corps { padding: 0 4px 20px; font-size: 0.88rem; max-width: none; }
+}
