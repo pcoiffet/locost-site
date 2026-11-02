@@ -3,5 +3,5 @@
 // statut : "archive" (terminé, fiche consultable), "en-cours" (jouable), "verrouille" (signal pas encore identifié).
 window.EPISODES = [
   { id: 'ep01', numero: '01', lieu: 'Berlin', lat: 52.52, lon: 13.405, statut: 'archive', url: '/jeu/ep01/' },
-  { id: 'ep02', numero: '02', lieu: null, lat: 34.3, lon: 108.9, statut: 'verrouille' },
+  { id: 'ep02', numero: '02', lieu: 'Chine', lat: 34.26, lon: 108.94, statut: 'en-cours', url: '/jeu/ep02/' },
 ];
