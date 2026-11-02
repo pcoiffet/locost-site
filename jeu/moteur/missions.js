@@ -66,7 +66,10 @@
   }
 
   // ---------- Sauvegarde ----------
-  const CLE_SAUVEGARDE = `locost-${ep.id}`;
+  // Mode test (?test ou ?test=AAAA-MM-JJ) : sauvegarde séparée et choix du jour, pour essayer sans toucher à la vraie partie
+  const parametres = new URLSearchParams(location.search);
+  const test = parametres.has('test');
+  const CLE_SAUVEGARDE = test ? `locost-${ep.id}-test` : `locost-${ep.id}`;
   const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, lus: {}, duels: {}, quiz: {}, verdict: {} });
   let etat;
   try { etat = { ...vide(), ...JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) || '{}') }; } catch { etat = vide(); }
@@ -76,7 +79,8 @@
 
   // ---------- Date du jour, heure de l'épisode (Pékin) ----------
   const locale = ['localhost', '127.0.0.1'].includes(location.hostname);
-  const dateForcee = locale && new URLSearchParams(location.search).get('date');
+  const dateValide = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d || '') ? d : null);
+  const dateForcee = (test && dateValide(parametres.get('test'))) || (locale && dateValide(parametres.get('date')));
   const decalage = (ep.fuseau || 0) * 3600000;
   const aujourdhui = () => dateForcee || new Date(Date.now() + decalage).toISOString().slice(0, 10);
   const debutJour = (date) => Date.parse(`${date}T00:00:00Z`) - decalage;
@@ -101,6 +105,22 @@
   tete.append(el('div', 'eyebrow', T.eyebrow), titre, intro);
   const zone = el('div', 'jeu-zone');
   racine.append(tete, zone);
+
+  // Bandeau du mode test : un lien par jour d'épreuve
+  if (test) {
+    const bandeau = el('nav', 'bandeau-test');
+    bandeau.appendChild(el('span', null, 'mode test · jour :'));
+    const jours = [...new Set(ep.missions.map((m) => m.date).filter(Boolean))];
+    [null, ...jours].forEach((d) => {
+      const lien = el('a', d === dateForcee || (!d && !dateForcee) ? 'actif' : '', d ? dateCourte(d) : 'auj.');
+      lien.href = d ? `?test=${d}` : '?test';
+      bandeau.appendChild(lien);
+    });
+    const quitter = el('a', 'quitter', 'quitter');
+    quitter.href = location.pathname;
+    bandeau.appendChild(quitter);
+    document.body.insertBefore(bandeau, racine);
+  }
 
   function afficher() {
     zone.textContent = '';
@@ -374,6 +394,15 @@
       }
     };
     montrerJoker();
+
+    // Mode test : passer une épreuve sans connaître la réponse
+    if (test && !verifier) {
+      form.appendChild(bouton('lien-console discret passer-test', 'passer l’épreuve (mode test)', () => {
+        etat.valides[m.id] = true;
+        sauver();
+        rafraichir(m);
+      }));
+    }
 
     form.addEventListener('submit', async (evenement) => {
       evenement.preventDefault();
