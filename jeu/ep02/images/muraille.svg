@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
+<defs><radialGradient id="v" cx="50%" cy="45%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#3a2a12" stop-opacity=".45"/></radialGradient>
+<filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .2 0 0 0 0 .16 0 0 0 0 .1 0 0 0 .22 0"/></filter></defs>
+<rect width="300" height="220" fill="#d8ccb2"/>
+<g fill="none" stroke="#2a251d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M0 160q50-70 100-40t90-50 110 40" stroke-width="1.5"/>
+<path d="M0 175q50-70 100-40t90-50 110 40"/><path d="M0 160v15M300 150v15"/>
+<path d="M10 160v-6h6v4h6v-6h6v6M95 122v-6h6v4h6v-6h6v6M200 72v-6h6v4h6v-6h6v6"/>
+<rect x="88" y="100" width="24" height="26"/><path d="M84 100h32v-6H84zM96 126v-10h8v10"/><rect x="190" y="52" width="24" height="24"/><path d="M186 52h32v-6h-32z"/>
+<path d="M0 200q80-30 150-10t150-20" stroke-width="1.2"/></g>
+<rect width="300" height="220" filter="url(#g)"/><rect width="300" height="220" fill="url(#v)"/></svg>

@@ -70,7 +70,7 @@
   const parametres = new URLSearchParams(location.search);
   const test = parametres.has('test');
   const CLE_SAUVEGARDE = test ? `locost-${ep.id}-test` : `locost-${ep.id}`;
-  const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, lus: {}, duels: {}, quiz: {}, verdict: {} });
+  const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, portraits: {}, lus: {}, duels: {}, quiz: {}, verdict: {} });
   let etat;
   try { etat = { ...vide(), ...JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) || '{}') }; } catch { etat = vide(); }
   function sauver() {
@@ -88,8 +88,9 @@
   const ouverte = (m) => !m.date || m.date <= aujourdhui() || etat.forces[m.id];
   const numero = (m) => m.id.replace(/\D/g, '');
   const autreRole = (role) => ROLES.find((r) => r !== role);
-  const nom = (role) => ep.roles[role].nom;
-  const surnom = (role) => ep.roles[role].surnom || nom(role);
+  const nom = (role) => lire(ep.roles[role].nom);
+  const surnom = (role) => lire(ep.roles[role].surnom) || nom(role);
+  const images = `/jeu/${ep.id}/images/`;
 
   // ---------- Squelette de la page ----------
   const barre = el('header', 'barre');
@@ -126,7 +127,9 @@
     zone.textContent = '';
     barreRole.textContent = etat.role ? nom(etat.role) : `EP${ep.numero}`;
     if (!etat.role) return choixRole();
-    zone.append(transmission(T.transmission, messages(ep.transmission), 'intro'), progression(), listeMissions(), dossier(), pied());
+    zone.append(transmission(T.transmission, messages(ep.transmission), 'intro'));
+    if (!etat.portraits[etat.role]) zone.appendChild(pieceManquante());
+    zone.append(progression(), listeMissions(), dossier(), pied());
   }
 
   // ---------- Choix du dossier (rôle) ----------
@@ -135,11 +138,8 @@
     bloc.appendChild(el('p', 'roles-texte', T.choixRole));
     const choix = el('div', 'roles-choix');
     ROLES.forEach((role) => {
-      const carte = el('article', 'fiche-candidat');
-      carte.appendChild(el('h2', null, nom(role)));
-      const liste = el('ul');
-      (ep.roles[role].fiche || []).forEach((ligne) => liste.appendChild(el('li', null, lire(ligne))));
-      carte.append(liste, bouton('bouton role', T.choixRoleBouton, () => {
+      const carte = fiche(role, false);
+      carte.appendChild(bouton('bouton role', T.choixRoleBouton, () => {
         if (!window.confirm(`Confirmer : tu es ${nom(role)} ?`)) return;
         etat.role = role;
         sauver();
@@ -150,6 +150,92 @@
     });
     bloc.appendChild(choix);
     zone.appendChild(bloc);
+  }
+
+  // ---------- Fiche de douane d'un candidat, photo d'identité agrafée ----------
+  function fiche(role, modifiable) {
+    const r = ep.roles[role];
+    const carte = el('article', 'fiche-candidat douane');
+    const tete = el('header', 'douane-tete');
+    tete.append(
+      el('span', 'douane-pays', '中华人民共和国 · 同名管理局'),
+      el('span', 'douane-titre', 'Fiche de contrôle · homonymes'),
+      el('span', 'douane-numero', `N° ${lire(r.numero) || role}`),
+    );
+    const corps = el('div', 'douane-corps');
+    const portrait = cliche(etat.portraits[role] || `${images}silhouette.svg`, null, 'agrafe identite');
+    if (!etat.portraits[role]) portrait.classList.add('vide');
+    if (modifiable) {
+      const fichier = champPhoto(role === etat.role ? 'user' : 'environment', async (donnees) => {
+        etat.portraits[role] = donnees;
+        sauver();
+        carte.replaceWith(fiche(role, true));
+      });
+      const libelle = etat.portraits[role] ? 'changer la photo' : role === etat.role ? 'agrafer ta photo' : 'photographier l’autre candidat';
+      portrait.append(fichier, bouton('lien-console', libelle, () => fichier.click()));
+    }
+    const champs = el('dl', 'douane-champs');
+    (r.fiche || []).forEach((ligne) => {
+      const texte = lire(ligne);
+      const coupure = texte.indexOf(' : ');
+      champs.append(el('dt', null, coupure < 0 ? '' : texte.slice(0, coupure)), el('dd', null, coupure < 0 ? texte : texte.slice(coupure + 3)));
+    });
+    corps.append(portrait, champs);
+    carte.append(tete, corps);
+    if (r.avis) {
+      const avis = el('footer', 'douane-avis');
+      avis.append(el('span', 'eyebrow', 'Observations de l’agent'), el('p', null, lire(r.avis)), el('span', 'tampon', 'À surveiller'));
+      carte.appendChild(avis);
+    }
+    return carte;
+  }
+
+  // Rappel tant que la photo d'identité du joueur manque
+  function pieceManquante() {
+    const bloc = el('div', 'piece-manquante');
+    const fichier = champPhoto('user', async (donnees) => {
+      etat.portraits[etat.role] = donnees;
+      sauver();
+      afficher();
+    });
+    bloc.append(
+      el('span', 'tampon', 'Pièce manquante'),
+      el('p', null, 'Le Bureau exige une photo d’identité, agrafée à ta fiche de contrôle. Sans sourire, de préférence.'),
+      fichier,
+      bouton('bouton', 'Prendre la photo', () => fichier.click()),
+    );
+    return bloc;
+  }
+
+  // Tirage photo collé sur le papier : agrafe, scotch ou trombone
+  function cliche(source, legende, maniere) {
+    const cadre = el('figure', `cliche ${maniere || 'scotch'}`);
+    const image = el('img');
+    image.src = source;
+    image.alt = legende || 'photo';
+    image.loading = 'lazy';
+    cadre.appendChild(image);
+    if (legende) cadre.appendChild(el('figcaption', null, legende));
+    return cadre;
+  }
+  const MANIERES = ['scotch', 'agrafe', 'trombone'];
+  const maniere = (m) => MANIERES[Number(numero(m)) % MANIERES.length];
+
+  // Champ photo caché (appareil du téléphone), réduit pour tenir dans la sauvegarde
+  function champPhoto(camera, quandPrete) {
+    const fichier = el('input');
+    Object.assign(fichier, { type: 'file', accept: 'image/*', hidden: true });
+    fichier.setAttribute('capture', camera);
+    fichier.addEventListener('change', async () => {
+      const image = fichier.files && fichier.files[0];
+      if (!image) return;
+      try {
+        await quandPrete(await reduire(image, 640));
+      } catch {
+        window.alert('Photo illisible, recommence.');
+      }
+    });
+    return fichier;
   }
 
   // ---------- Transmission façon terminal ----------
@@ -348,6 +434,7 @@
       return;
     }
 
+    if (m.image) corps.appendChild(cliche(`${images}${m.image}`, `archives du Bureau · ${m.lieu}`, `${maniere(m)} archive`));
     corps.appendChild(el('p', 'mission-texte', lire(m.commun)));
     const terrain = m.terrain === 'deux' || m.terrain === etat.role;
     corps.appendChild(el('p', 'mission-role', m.terrain === 'deux' ? T.deux : terrain ? T.terrain : T.cle));
@@ -606,7 +693,7 @@
       doc.append(el('h3', null, T.note), el('p', null, lire(m.dossier)));
       bloc.appendChild(doc);
     }
-    if (etat.photos[m.id]) bloc.appendChild(photo(etat.photos[m.id]));
+    bloc.appendChild(souvenir(m));
     const suite = [...messages(m.apres && m.apres.commun), ...messages(m.apres && m.apres[etat.role])];
     if (suite.length) {
       const { log, jouer } = journalUnique(suite, `apres-${m.id}`);
@@ -614,6 +701,20 @@
     }
     if (m.duel) bloc.appendChild(duel(m));
     if (m.verdict) bloc.appendChild(verdict(m));
+    return bloc;
+  }
+
+  // Photo souvenir de l'épreuve, jointe au dossier (prise ou remplacée à tout moment)
+  function souvenir(m) {
+    const bloc = el('div', 'souvenir');
+    const fichier = champPhoto('environment', async (donnees) => {
+      etat.photos[m.id] = donnees;
+      sauver();
+      bloc.replaceWith(souvenir(m));
+      zone.querySelector('.dossier').replaceWith(dossier());
+    });
+    if (etat.photos[m.id]) bloc.appendChild(cliche(etat.photos[m.id], `pièce jointe · ${m.lieu}`, maniere(m)));
+    bloc.append(fichier, bouton('lien-console', etat.photos[m.id] ? 'remplacer la photo' : 'joindre une photo souvenir au dossier', () => fichier.click()));
     return bloc;
   }
 
@@ -670,6 +771,7 @@
     bloc.appendChild(image);
     const lien = el('a', 'bouton', 'Enregistrer le certificat');
     lien.href = image.src;
+    image.addEventListener('load', () => { lien.href = image.src; }); // after the portrait is stapled
     lien.download = 'certificat-paul-n1.png';
     bloc.appendChild(lien);
     return bloc;
@@ -777,17 +879,36 @@
     const image = el('img', 'certificat');
     image.alt = `Certificat : ${nom(gagnant)} est officiellement Paul n°1`;
     image.src = toile.toDataURL('image/png');
+    // Photo d'identité du gagnant, agrafée en haut à gauche
+    if (etat.portraits[gagnant]) {
+      const portrait = new Image();
+      portrait.onload = () => {
+        const l = 140;
+        const h = Math.round(l * 1.28);
+        const cote = Math.min(portrait.width, portrait.height / 1.28);
+        c.save();
+        c.translate(80, 70);
+        c.rotate(-0.06);
+        c.shadowColor = 'rgba(60, 40, 10, 0.35)';
+        c.shadowBlur = 14;
+        c.shadowOffsetY = 4;
+        c.fillStyle = '#fbf8f0';
+        c.fillRect(0, 0, l + 20, h + 20);
+        c.shadowColor = 'transparent';
+        c.filter = 'grayscale(1) contrast(1.15)';
+        c.drawImage(portrait, (portrait.width - cote) / 2, (portrait.height - cote * 1.28) / 2, cote, cote * 1.28, 10, 10, l, h);
+        c.filter = 'none';
+        // Agrafe
+        c.fillStyle = '#8d8f93';
+        c.fillRect(l / 2 - 20, -4, 70, 7);
+        c.restore();
+        image.src = toile.toDataURL('image/png');
+      };
+      portrait.src = etat.portraits[gagnant];
+    }
     return image;
   }
 
-  function photo(source) {
-    const cadre = el('figure', 'photo');
-    const image = el('img');
-    image.src = source;
-    image.alt = 'Pièce à conviction';
-    cadre.append(image, el('figcaption', null, 'pièce à conviction · conservée sur ce téléphone'));
-    return cadre;
-  }
 
   // ---------- Verrous à capteur ----------
   function verrou(m) {
@@ -808,7 +929,7 @@
     });
 
     if (v.type === 'gps') {
-      bloc.append(el('p', 'mission-texte', `Ce formulaire ne s’ouvre qu’à proximité de ${v.nom}. Active la localisation une fois sur place.`));
+      bloc.append(el('p', 'mission-texte', `Ce formulaire ne s’ouvre qu’à proximité de ${lire(v.nom)}. Active la localisation une fois sur place.`));
       const signal = el('div', 'signal');
       const jauge = el('span');
       signal.appendChild(jauge);
@@ -948,7 +1069,17 @@
       ligne.appendChild(el('span', 'note', 'rien pour l’instant'));
     }
     bloc.append(el('p', 'eyebrow', T.mots), ligne);
-    Object.values(etat.photos || {}).forEach((source) => bloc.appendChild(photo(source)));
+    bloc.appendChild(el('p', 'eyebrow', 'Fiches de contrôle'));
+    const fiches = el('div', 'douane-liste');
+    [etat.role, autreRole(etat.role)].forEach((r) => fiches.appendChild(fiche(r, true)));
+    bloc.appendChild(fiches);
+    const album = ep.missions.filter((m) => etat.photos[m.id]);
+    if (album.length) {
+      bloc.appendChild(el('p', 'eyebrow', 'Pièces jointes'));
+      const planche = el('div', 'album');
+      album.forEach((m) => planche.appendChild(cliche(etat.photos[m.id], `${numero(m)} · ${m.lieu}`, maniere(m))));
+      bloc.appendChild(planche);
+    }
     return bloc;
   }
 
