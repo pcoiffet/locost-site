@@ -1,15 +1,29 @@
 // Garde l'épisode 02 dans le téléphone pour y jouer sans réseau.
 // Stratégie : réponse depuis le cache, mise à jour en arrière-plan quand le réseau répond.
 // Changer VERSION (et la liste) quand un fichier ou un ?v=N change.
-const VERSION = 'locost-ep02-v2';
+const VERSION = 'locost-ep02-v3';
 const FICHIERS = [
   '/jeu/ep02/',
-  '/jeu/ep02/episode.js?v=1',
-  '/jeu/moteur/missions.js?v=2',
+  '/jeu/ep02/episode.js?v=2',
+  '/jeu/moteur/missions.js?v=3',
   '/jeu/moteur/jeu.css?v=7',
-  '/jeu/ep02/bureau.css?v=1',
+  '/jeu/ep02/bureau.css?v=2',
   '/css/locost.css?v=7',
   '/js/terminal.js?v=7',
+  '/jeu/ep02/images/avion.svg',
+  '/jeu/ep02/images/bouddha.svg',
+  '/jeu/ep02/images/croisiere.svg',
+  '/jeu/ep02/images/guanyin.svg',
+  '/jeu/ep02/images/guerriers.svg',
+  '/jeu/ep02/images/jade.svg',
+  '/jeu/ep02/images/jardin.svg',
+  '/jeu/ep02/images/liziba.svg',
+  '/jeu/ep02/images/muraille.svg',
+  '/jeu/ep02/images/pagode.svg',
+  '/jeu/ep02/images/passeport.svg',
+  '/jeu/ep02/images/silhouette.svg',
+  '/jeu/ep02/images/tgv.svg',
+  '/jeu/ep02/images/toit.svg',
 ];
 
 self.addEventListener('install', (evenement) => {
