@@ -92,14 +92,20 @@
   const surnom = (role) => lire(ep.roles[role].surnom) || nom(role);
   const images = `/jeu/${ep.id}/images/`;
 
-
   // ---------- Squelette de la page ----------
   const barre = el('header', 'barre');
-  const barreScore = el('span', 'barre-score');
-  barre.append(el('span', 'barre-titre', ep.titre), barreScore);
+  const barreRole = el('span');
+  barre.append(el('span', 'point', T.barre), barreRole);
   document.body.insertBefore(barre, racine);
+
+  const tete = el('div', 'fiche-tete');
+  const titre = el('h1', 'glitch', ep.titre);
+  titre.dataset.text = ep.titre;
+  const intro = el('p', 'terminal');
+  intro.dataset.lines = T.intro.join('|');
+  tete.append(el('div', 'eyebrow', T.eyebrow), titre, intro);
   const zone = el('div', 'jeu-zone');
-  racine.appendChild(zone);
+  racine.append(tete, zone);
 
   // Bandeau du mode test : un lien par jour d'épreuve
   if (test) {
@@ -117,210 +123,94 @@
     document.body.insertBefore(bandeau, racine);
   }
 
-  // ---------- Deux vues : le formulaire du jour (par défaut) et les archives, discrètes ----------
-  let vue = 'jour';
-  try { vue = sessionStorage.getItem(`${CLE_SAUVEGARDE}-vue`) || 'jour'; } catch { /* private mode */ }
-  function changerVue(id) {
-    vue = id;
-    try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-vue`, id); } catch { /* private mode */ }
+  // ---------- Onglets : Aujourd'hui · Carte · Dossier · Registre ----------
+  const ONGLETS = [['jour', 'Aujourd’hui'], ['carte', 'Carte'], ['dossier', 'Dossier'], ['registre', 'Registre']];
+  let onglet = 'jour';
+  try { onglet = sessionStorage.getItem(`${CLE_SAUVEGARDE}-onglet`) || 'jour'; } catch { /* private mode */ }
+  const ouverts = new Set(); // missions dépliées par le joueur, gardées d'un rendu à l'autre
+  const nav = el('nav', 'onglets');
+  nav.setAttribute('aria-label', 'Menu du jeu');
+  document.body.appendChild(nav);
+
+  function changerOnglet(id, missionId) {
+    onglet = id;
+    try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-onglet`, id); } catch { /* private mode */ }
+    if (missionId) ouverts.add(missionId);
     afficher();
     window.scrollTo(0, 0);
+    if (missionId) {
+      const cible = zone.querySelector(`.mission[data-id="${missionId}"]`);
+      if (cible) cible.scrollIntoView({ block: 'start' });
+    }
   }
 
   function afficher() {
     zone.textContent = '';
-    document.body.classList.toggle('en-jeu', !!etat.role);
-    if (!etat.role) {
-      barreScore.textContent = '';
-      return choixRole();
-    }
-    const s = scores();
-    const moi = etat.role;
-    const autre = autreRole(moi);
-    barreScore.textContent = `${surnom(moi)} ${s[moi]} – ${s[autre]} ${surnom(autre)}`;
-    zone.appendChild(vue === 'archives' ? vueArchives() : vueJour());
+    const s = etat.role ? scores() : null;
+    barreRole.textContent = etat.role ? ROLES.map((r) => `${surnom(r)} ${s[r]}`).join(' · ') : `EP${ep.numero}`;
+    barreRole.className = 'barre-score';
+    barre.firstChild.textContent = etat.role ? `EP${ep.numero}` : T.barre;
+    document.body.classList.toggle('avec-onglets', !!etat.role);
+    nav.textContent = '';
+    if (!etat.role) return choixRole();
+    ONGLETS.forEach(([id, libelle]) => {
+      const b = bouton(`onglet${id === onglet ? ' actif' : ''}`, libelle, () => changerOnglet(id));
+      b.dataset.onglet = id;
+      if (id === onglet) b.setAttribute('aria-current', 'page');
+      nav.appendChild(b);
+    });
+    const vues = { jour: vueJour, carte: vueCarte, dossier: vueDossier, registre: vueRegistre };
+    zone.appendChild((vues[onglet] || vueJour)());
   }
 
-  // Nouveau rendu en gardant la position ; une épreuve qui vient d'être classée remonte en haut
-  function rafraichir(m) {
-    const y = window.scrollY;
-    afficher();
-    window.scrollTo(0, m && vue === 'jour' && terminee(m) ? 0 : y);
-  }
-
-  const jouables = ep.missions.filter((m) => m.date);
-  // Une épreuve est terminée quand le formulaire est validé et le duel tranché
-  const terminee = (m) => etat.valides[m.id] && (!m.duel || etat.duels[m.id]) && (m.type !== 'final' || etat.verdict.rendu);
-  const dateLongue = (date) => new Date(`${date}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
-
-  // ---------- Le jour : la convocation, puis une seule épreuve ----------
+  // Aujourd'hui : seulement ce qui est à faire
   function vueJour() {
-    const bloc = el('section', 'vue vue-jour');
+    const vue = el('section', 'vue vue-jour');
     const date = aujourdhui();
-    const jour = Math.round((Date.parse(date) - Date.parse(jouables[0].date)) / 86400000) + 2; // jour 1 = départ de Paris
-    bloc.appendChild(el('p', 'jour-date', jour >= 1 && jour <= 13 ? `${dateLongue(date)} · jour ${jour} sur 13` : dateLongue(date)));
-    // La convocation reste dépliée tant que le premier formulaire n'est pas validé
-    bloc.appendChild(convocation(!etat.valides[ep.missions[0].id]));
-    if (!etat.portraits[etat.role]) bloc.appendChild(pieceManquante());
-
-    // L'épreuve du jour : la plus ancienne ouverte et pas encore classée. Une fois classée, on ne revient pas dessus.
-    const courante = ep.missions.find((m) => ouverte(m) && !terminee(m));
-    const finale = ep.missions.find((m) => m.verdict);
-    if (courante) bloc.appendChild(feuille(courante));
-    else if (finale && terminee(finale)) bloc.appendChild(feuille(finale)); // le verdict et le certificat restent affichés
-    else {
-      const classee = [...ep.missions].reverse().find((m) => terminee(m) && (!m.date || m.date === date));
-      if (classee) bloc.appendChild(resumeClasse(classee));
-      bloc.appendChild(repos());
+    const premier = jouables[0].date;
+    const jour = Math.round((Date.parse(date) - Date.parse(premier)) / 86400000) + 2; // jour 1 = départ de Paris, la veille
+    const libelle = new Date(`${date}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    vue.appendChild(el('p', 'jour-date', jour >= 1 && jour <= 13 ? `${libelle} · jour ${jour} / 13` : libelle));
+    if (!etat.lus.intro) vue.appendChild(transmission(T.transmission, messages(ep.transmission), 'intro'));
+    if (!etat.portraits[etat.role]) vue.appendChild(pieceManquante());
+    const aFaire = ep.missions.filter((m) => ouverte(m) && !terminee(m));
+    const duJour = aFaire.filter((m) => !m.date || m.date === date);
+    const enRetard = aFaire.filter((m) => m.date && m.date < date);
+    if (duJour.length) {
+      const liste = el('div', 'rappels missions');
+      duJour.forEach((m) => { ouverts.add(m.id); liste.appendChild(mission(m)); });
+      if (!duJour.some((m) => m.date)) vue.appendChild(el('h2', 'acte', 'Avant le départ'));
+      vue.appendChild(liste);
+    } else {
+      const repos = el('div', 'repos');
+      repos.append(cliche(`${images}lotus.jpg`, 'Bada Shanren, Lotus et canards (XVIIe s.)', 'scotch'), el('p', null, 'Aucun formulaire en attente. Le Bureau vous accorde un temps de repos réglementaire.'));
+      vue.appendChild(repos);
     }
-    bloc.appendChild(bouton('lien-archives', 'Mon dossier · carte · formulaires classés', () => changerVue('archives')));
-    return bloc;
+    if (enRetard.length) {
+      const liste = el('div', 'rappels missions');
+      enRetard.forEach((m) => liste.appendChild(mission(m)));
+      vue.append(el('h2', 'acte', 'En retard'), liste);
+    }
+    const prochain = compteARebours();
+    if (prochain) vue.appendChild(prochain);
+    return vue;
   }
 
-  // Lettre d'ouverture : tout l'enjeu du jeu, signée de l'inspecteur
-  function convocation(deplie) {
-    const c = ep.convocation;
-    const lettre = el('article', 'convocation');
-    const entete = el('header', 'lettre-entete');
-    entete.append(el('span', 'lettre-zh', '同名管理局'), el('span', 'lettre-service', 'Bureau central des homonymes'), el('span', 'lettre-ref', lire(c.reference)));
-    lettre.append(entete, el('p', 'lettre-objet', lire(c.objet)));
-    c.paragraphes.map(lire).forEach((texte) => lettre.appendChild(el('p', /^\d\. /.test(texte) ? 'lettre-point' : null, texte)));
-    const signature = el('footer', 'lettre-signature');
-    signature.append(el('span', null, lire(c.signature)), el('span', 'tampon rond', '同名\n0001'));
-    lettre.appendChild(signature);
-    if (deplie) return lettre;
-    const pli = el('details', 'convocation-pli');
-    pli.append(el('summary', null, 'Relire la convocation'), lettre);
-    return pli;
-  }
-
-  // Feuille de l'épreuve du jour
-  function feuille(m) {
-    const bloc = el('article', 'feuille');
-    bloc.dataset.id = m.id;
-    bloc.appendChild(enteteFeuille(m));
-    if (m.date && m.date < aujourdhui() && !etat.valides[m.id]) bloc.appendChild(el('p', 'feuille-retard', 'En retard : à classer avant le formulaire suivant.'));
-    const corps = el('div', 'feuille-corps');
-    bloc.appendChild(corps);
-    remplir(m, corps);
-    return bloc;
-  }
-  function enteteFeuille(m) {
-    const tete = el('header', 'feuille-tete');
-    const ligne = el('p', 'feuille-ref');
-    ligne.append(el('span', null, `Formulaire n° ${numero(m)}`), el('span', null, m.date ? dateLongue(m.date) : 'avant le départ'));
-    tete.append(ligne, el('h2', 'feuille-lieu', m.lieu), el('p', 'feuille-ville', m.ville));
-    return tete;
-  }
-
-  // Épreuve classée du jour : un simple rappel, sans retour possible
-  function resumeClasse(m) {
-    const bloc = el('article', 'feuille classee');
-    bloc.append(enteteFeuille(m), el('span', 'tampon', 'Classé'));
-    const liste = el('dl', 'classee-lignes');
-    const ligne = (cle, valeur) => liste.append(el('dt', null, cle), el('dd', null, valeur));
-    if (m.piece) ligne(T.piece, `« ${lire(m.piece)} »`);
-    if (m.duel && etat.duels[m.id]) ligne(lire(m.duel.titre), etat.duels[m.id] === 'egal' ? 'égalité' : `gagné par ${surnom(etat.duels[m.id])}`);
-    const issue = m.type === 'choix' && issueChoix(m, etat.choix[m.id]);
-    if (issue) ligne('Points', `toi ${signe(issue.moi)}, ${T.autre} ${signe(issue.autre)}`);
-    bloc.appendChild(liste);
-    return bloc;
-  }
-  const signe = (n) => `${n >= 0 ? '+' : ''}${n}`;
-
-  // Entre deux épreuves : la suivante et son compte à rebours
-  function repos() {
-    const bloc = el('div', 'repos');
+  function compteARebours() {
     const prochaine = jouables.find((m) => !ouverte(m));
-    if (!prochaine) return bloc;
-    bloc.append(el('p', 'repos-titre', 'Prochain formulaire'), el('p', 'repos-lieu', `${prochaine.ville}, ${dateLongue(prochaine.date)}`), compteARebours(prochaine));
-    bloc.appendChild(bouton('lien-console', T.forcer, () => {
-      if (!window.confirm('Ouvrir le formulaire suivant en avance ? À faire seulement si le guide a changé l’ordre des visites.')) return;
-      etat.forces[prochaine.id] = true;
-      sauver();
-      afficher();
-    }));
-    return bloc;
-  }
-
-  function compteARebours(prochaine) {
-    const ligne = el('p', 'repos-compte');
+    if (!prochaine) return null;
+    const ligne = el('p', 'progression-prochain');
     const maj = () => {
       const reste = Math.max(0, debutJour(prochaine.date) - Date.now());
       const h = Math.floor(reste / 3600000);
       const j = Math.floor(h / 24);
       const mn = Math.floor((reste % 3600000) / 60000);
-      ligne.textContent = `ouverture dans ${j ? `${j} j ` : ''}${deuxChiffres(h % 24)} h ${deuxChiffres(mn)}`;
+      ligne.textContent = `prochaine épreuve · ${prochaine.ville} · ${j ? `${j} j ` : ''}${deuxChiffres(h % 24)} h ${deuxChiffres(mn)}`;
       if (reste === 0 && !dateForcee) afficher();
     };
     maj();
     const minuteur = setInterval(() => { if (!ligne.isConnected) clearInterval(minuteur); else maj(); }, 30000);
     return ligne;
-  }
-
-  // ---------- Archives : dossier, carte et formulaires classés ----------
-  function vueArchives() {
-    const bloc = el('section', 'vue vue-archives');
-    bloc.appendChild(bouton('lien-retour', '← Formulaire du jour', () => changerVue('jour')));
-
-    bloc.appendChild(el('h2', 'archives-titre', 'Mon dossier'));
-    bloc.appendChild(fiche(etat.role, true));
-    const autre = el('details', 'pli');
-    autre.appendChild(el('summary', null, `Fiche de ${nom(autreRole(etat.role))}`));
-    autre.addEventListener('toggle', () => { if (autre.open && autre.childElementCount === 1) autre.appendChild(fiche(autreRole(etat.role), true)); });
-    bloc.appendChild(autre);
-
-    bloc.appendChild(el('h2', 'archives-titre', T.mots));
-    const mots = ep.missions.filter((m) => m.piece && etat.valides[m.id]).map((m) => lire(m.piece));
-    bloc.appendChild(listeMots(mots));
-
-    bloc.append(el('h2', 'archives-titre', 'Carnet de route'), carte());
-
-    bloc.appendChild(el('h2', 'archives-titre', 'Formulaires classés'));
-    const classes = ep.missions.filter((m) => etat.valides[m.id]);
-    if (!classes.length) bloc.appendChild(el('p', 'note', 'Aucun pour l’instant.'));
-    const liste = el('div', 'historique');
-    classes.forEach((m) => liste.appendChild(histoire(m)));
-    bloc.appendChild(liste);
-
-    const album = ep.missions.filter((m) => etat.photos[m.id]);
-    if (album.length) {
-      bloc.appendChild(el('h2', 'archives-titre', 'Pièces jointes'));
-      const planche = el('div', 'album');
-      album.forEach((m) => planche.appendChild(cliche(etat.photos[m.id], `${numero(m)} · ${m.lieu}`, maniere(m))));
-      bloc.appendChild(planche);
-    }
-    bloc.appendChild(pied());
-    return bloc;
-  }
-
-  // Mots du règlement, en ordre alphabétique : l'ordre de la phrase reste à retrouver
-  function listeMots(mots) {
-    const ligne = el('p', 'mots');
-    if (!mots.length) ligne.appendChild(el('span', 'note', 'rien pour l’instant'));
-    [...mots].sort((a, b) => a.localeCompare(b, 'fr')).forEach((mot) => ligne.appendChild(el('span', 'mot', mot)));
-    return ligne;
-  }
-
-  // Un formulaire classé : ce qu'il a rapporté, et le duel (rectifiable)
-  function histoire(m) {
-    const bloc = el('details', 'pli histoire');
-    const resume = el('summary');
-    resume.append(el('span', 'histoire-num', numero(m)), el('span', 'histoire-lieu', m.lieu), el('span', 'histoire-date', m.date ? dateCourte(m.date) : 'Paris'));
-    bloc.appendChild(resume);
-    bloc.addEventListener('toggle', () => {
-      if (!bloc.open || bloc.childElementCount > 1) return;
-      const corps = el('div', 'histoire-corps');
-      if (m.piece) corps.appendChild(el('p', 'piece', `${T.piece} : « ${lire(m.piece)} »`));
-      if (m.pieceTexte) corps.appendChild(el('p', 'piece', lire(m.pieceTexte)));
-      if (m.dossier) corps.appendChild(el('p', 'note-bureau', lire(m.dossier)));
-      const issue = m.type === 'choix' && issueChoix(m, etat.choix[m.id]);
-      if (issue) corps.appendChild(el('p', null, `Points : toi ${signe(issue.moi)}, ${T.autre} ${signe(issue.autre)}`));
-      if (m.duel) corps.appendChild(duel(m));
-      corps.appendChild(souvenir(m));
-      bloc.appendChild(corps);
-    });
-    return bloc;
   }
 
   // Carte : le tracé avance d'étape en étape, puis le carnet de route
@@ -329,6 +219,30 @@
     const m = ep.missions.find((x) => x.id === id);
     return m && (etat.valides[id] || (m.date && m.date <= aujourdhui()));
   });
+  function vueCarte() {
+    const vue = el('section', 'vue vue-carte');
+    vue.appendChild(carte());
+    const liste = el('div', 'rappels missions');
+    let acte = null;
+    ep.missions.forEach((m) => {
+      if (m.acte !== acte) {
+        acte = m.acte;
+        const tete = el('div', 'acte-tete');
+        const e = etapes.find((x) => x.nom === acte);
+        if (e && e.skyline) {
+          const image = el('img', 'skyline');
+          image.src = `${images}${e.skyline}`;
+          image.alt = '';
+          tete.appendChild(image);
+        }
+        tete.appendChild(el('h2', 'acte', e ? `${acte} · ${e.zh}` : acte));
+        liste.appendChild(tete);
+      }
+      liste.appendChild(mission(m));
+    });
+    vue.append(el('p', 'eyebrow', 'Carnet de route'), liste, cliche(`${images}carte-ancienne.jpg`, 'carte saisie en douane · archives du Bureau', 'trombone archive-carte'));
+    return vue;
+  }
 
   function carte() {
     const C = window.CARTE_CHINE;
@@ -392,78 +306,152 @@
     return cadre;
   }
 
+  function vueDossier() {
+    const vue = dossier();
+    vue.classList.add('vue', 'vue-dossier');
+    return vue;
+  }
+
+  // Registre : score, duels et notifications
+  function vueRegistre() {
+    const vue = el('section', 'vue vue-registre');
+    vue.appendChild(progression());
+    const tableau = el('div', 'registre-duels');
+    tableau.appendChild(el('p', 'eyebrow', 'Duels et décisions'));
+    const liste = el('ol', 'registre-liste');
+    ep.missions.forEach((m) => {
+      if (!m.duel && m.type !== 'choix') return;
+      const li = el('li', ouverte(m) ? '' : 'futur');
+      const titre = m.duel ? lire(m.duel.titre) : m.lieu;
+      let resultat = '·';
+      if (m.duel && etat.duels[m.id]) resultat = etat.duels[m.id] === 'egal' ? 'égalité' : surnom(etat.duels[m.id]);
+      if (m.type === 'choix') {
+        const issue = issueChoix(m, etat.choix[m.id]);
+        if (issue) resultat = `${issue.moi >= 0 ? '+' : ''}${issue.moi} / ${issue.autre >= 0 ? '+' : ''}${issue.autre}`;
+      }
+      const lien = bouton('registre-lien', '', () => changerOnglet('carte', m.id));
+      lien.append(el('span', 'rappel-num', numero(m)), el('span', 'registre-titre', ouverte(m) ? titre : m.lieu), el('span', 'registre-gagnant', ouverte(m) ? resultat : dateCourte(m.date)));
+      li.appendChild(lien);
+      liste.appendChild(li);
+    });
+    tableau.appendChild(liste);
+    vue.append(tableau, transmission(T.transmission, messages(ep.transmission), 'intro'), pied());
+    return vue;
+  }
+
   // ---------- Choix du dossier (rôle) ----------
   function choixRole() {
     const bloc = el('section', 'roles');
-    bloc.append(el('h1', 'roles-titre', ep.titre), el('p', 'roles-texte', T.choixRole));
+    bloc.appendChild(el('p', 'roles-texte', T.choixRole));
+    const choix = el('div', 'roles-choix');
     ROLES.forEach((role) => {
-      const carteRole = el('div', 'role');
-      carteRole.append(fiche(role, false), bouton('bouton', T.choixRoleBouton, () => {
+      const carte = fiche(role, false);
+      carte.appendChild(bouton('bouton role', T.choixRoleBouton, () => {
         if (!window.confirm(`Confirmer : tu es ${nom(role)} ?`)) return;
         etat.role = role;
         sauver();
-        vue = 'jour';
         afficher();
         window.scrollTo(0, 0);
       }));
-      bloc.appendChild(carteRole);
+      choix.appendChild(carte);
     });
+    bloc.appendChild(choix);
     zone.appendChild(bloc);
   }
 
-  // ---------- Fiche de contrôle à l'ancienne : cases numérotées, photo agrafée, tampon ----------
-  // Lignes de la fiche : « Libellé · 中文 : valeur »
-  function champ(ligne) {
-    const texte = lire(ligne);
-    const coupure = texte.indexOf(' : ');
-    const libelle = coupure < 0 ? '' : texte.slice(0, coupure);
-    const [fr, zh] = libelle.split(' · ');
-    return { fr: fr || '', zh: zh || '', valeur: coupure < 0 ? texte : texte.slice(coupure + 3) };
-  }
-  function caseFiche(c, n) {
-    const bloc = el('div', `fd-case${/^Profession/.test(c.fr) ? ' demi' : ''}`);
-    const libelle = el('span', 'fd-libelle');
-    libelle.append(el('b', null, String(n)), ` ${c.fr}`);
-    if (c.zh) libelle.appendChild(el('span', 'fd-zh', c.zh));
-    bloc.append(libelle, el('span', 'fd-valeur', c.valeur));
-    return bloc;
-  }
+  // ---------- Fiche de douane d'un candidat, photo d'identité agrafée ----------
   function fiche(role, modifiable) {
     const r = ep.roles[role];
-    const carteFiche = el('article', 'fiche-douane');
-    const tete = el('header', 'fd-tete');
-    const gauche = el('div');
-    gauche.append(el('span', 'fd-pays', '中华人民共和国 · 同名管理局'), el('span', 'fd-org', 'Bureau central des homonymes'), el('span', 'fd-titre', 'Fiche de contrôle'));
-    const droite = el('div', 'fd-ref');
-    droite.append(el('span', null, 'Modèle H-26'), el('span', 'fd-numero', `N° ${lire(r.numero) || role}`));
-    tete.append(gauche, droite);
-
-    const champs = (r.fiche || []).map(champ);
-    const identite = el('div', 'fd-identite');
-    const photo = el('div', 'fd-photo');
-    if (etat.portraits[role]) photo.appendChild(cliche(etat.portraits[role], null, 'agrafe identite'));
-    else photo.appendChild(el('span', 'fd-photo-vide', 'photo\n35 × 45'));
+    const carte = el('article', 'fiche-candidat douane');
+    const tete = el('header', 'douane-tete');
+    tete.append(
+      el('span', 'douane-pays', '中华人民共和国 · 同名管理局'),
+      el('span', 'douane-titre', 'Fiche de contrôle · homonymes'),
+      el('span', 'douane-numero', `N° ${lire(r.numero) || role}`),
+    );
+    const corps = el('div', 'douane-corps');
+    const portrait = cliche(etat.portraits[role] || `${images}silhouette.svg`, null, 'agrafe identite');
+    if (!etat.portraits[role]) portrait.classList.add('vide');
     if (modifiable) {
       const fichier = champPhoto(role === etat.role ? 'user' : 'environment', async (donnees) => {
         etat.portraits[role] = donnees;
         sauver();
-        carteFiche.replaceWith(fiche(role, true));
+        carte.replaceWith(fiche(role, true));
       });
-      const libelle = etat.portraits[role] ? 'changer' : role === etat.role ? 'agrafer ta photo' : 'photographier';
-      photo.append(fichier, bouton('fd-photo-bouton', libelle, () => fichier.click()));
+      const libelle = etat.portraits[role] ? 'changer la photo' : role === etat.role ? 'agrafer ta photo' : 'photographier l’autre candidat';
+      portrait.append(fichier, bouton('lien-console', libelle, () => fichier.click()));
     }
-    const premiers = el('div', 'fd-cases');
-    champs.slice(0, 3).forEach((c, i) => premiers.appendChild(caseFiche(c, i + 1)));
-    identite.append(photo, premiers);
-    const suite = el('div', 'fd-cases fd-suite');
-    champs.slice(3).forEach((c, i) => suite.appendChild(caseFiche(c, i + 4)));
-
-    const pied = el('footer', 'fd-pied');
-    const s = scores();
-    const rang = etat.verdict.rendu ? (s[role] >= s[autreRole(role)] ? 'Paul n°1' : 'Paul n°2') : 'En instance';
-    pied.append(el('span', 'fd-visa', 'Visa de l’agent'), el('span', 'fd-signature', 'Zhang · 0001'), el('span', 'tampon', rang));
-    carteFiche.append(tete, identite, suite, pied);
-    return carteFiche;
+    const champs = el('dl', 'douane-champs');
+    const fixes = el('dl', 'douane-champs');
+    (r.fiche || []).forEach((ligne) => {
+      const texte = lire(ligne);
+      const coupure = texte.indexOf(' : ');
+      fixes.append(el('dt', null, coupure < 0 ? '' : texte.slice(0, coupure)), el('dd', null, coupure < 0 ? texte : texte.slice(coupure + 3)));
+    });
+    if (!modifiable) champs.append(...fixes.childNodes);
+    else champs.append(el('dt', null, 'Nom'), el('dd', 'douane-nom', nom(role)));
+    if (modifiable) {
+      // Champs qui évoluent avec le voyage
+      const s = scores();
+      const autre = autreRole(role);
+      const ajout = (cle, valeur) => champs.append(el('dt', 'evolutif', cle), el('dd', 'evolutif', valeur));
+      ajout('Statut', statut(role));
+      ajout('Paulitude', `${s[role]} point${s[role] > 1 ? 's' : ''} · ${s[role] > s[autre] ? 'en tête du registre' : s[role] < s[autre] ? 'à la traîne' : 'à égalité'}`);
+      const gagnes = Object.values(etat.duels).filter((g) => g === role).length;
+      ajout('Duels remportés', String(gagnes));
+    }
+    corps.append(portrait, champs);
+    carte.append(tete, corps);
+    if (modifiable) {
+      const plus = el('details', 'douane-plus');
+      plus.append(el('summary', null, 'fiche complète'), fixes);
+      carte.appendChild(plus);
+    }
+    if (modifiable) {
+      const visas = el('div', 'douane-visas');
+      visas.appendChild(el('span', 'eyebrow', 'Visas d’entrée'));
+      const page = el('div', 'visas-page');
+      const COULEURS = ['rouge', 'bleu', 'violet', 'vert', 'rouge', 'bleu'];
+      etapes.forEach((e, i) => {
+        if (!atteinte(e)) return page.appendChild(el('span', 'visa vide', ''));
+        const premiere = ep.missions.find((m) => m.id === e.missions[0]);
+        const visa = el('span', `visa ${COULEURS[i]}`);
+        visa.style.setProperty('--angle', `${((i * 37) % 17) - 8}deg`);
+        visa.append(el('strong', null, e.zh), el('span', null, e.nom.toUpperCase()), el('small', null, premiere && premiere.date ? `ENTRÉE ${dateCourte(premiere.date)}.26` : 'ENTRÉE'));
+        page.appendChild(visa);
+      });
+      visas.appendChild(page);
+      carte.appendChild(visas);
+    }
+    if (r.avis) {
+      const avis = el('footer', 'douane-avis');
+      avis.appendChild(el('span', 'eyebrow', 'Observations de l’agent'));
+      const aucune = !ep.missions.some((m) => m.notes && etat.valides[m.id]);
+      if (!modifiable || aucune) avis.appendChild(el('p', null, lire(r.avis)));
+      if (modifiable) {
+        const notes = ep.missions.filter((m) => m.notes && etat.valides[m.id]).reverse();
+        const note = (m) => {
+          const li = el('li');
+          li.append(el('span', 'note-date', m.date ? dateCourte(m.date) : 'Paris'), el('span', null, lire(m.notes[role])));
+          return li;
+        };
+        if (notes.length) {
+          const liste = el('ul', 'douane-notes');
+          liste.appendChild(note(notes[0]));
+          avis.appendChild(liste);
+        }
+        if (notes.length > 1) {
+          const anciennes = el('details', 'douane-plus');
+          const liste = el('ul', 'douane-notes');
+          notes.slice(1).forEach((m) => liste.appendChild(note(m)));
+          anciennes.append(el('summary', null, `notes précédentes (${notes.length - 1})`), liste);
+          avis.appendChild(anciennes);
+        }
+      }
+      avis.appendChild(el('span', 'tampon', etat.verdict.rendu && modifiable ? (scores()[role] >= scores()[autreRole(role)] ? 'Paul n°1' : 'Paul n°2') : 'À surveiller'));
+      carte.appendChild(avis);
+    }
+    return carte;
   }
 
   // Rappel tant que la photo d'identité du joueur manque
@@ -481,6 +469,17 @@
       bouton('bouton', 'Prendre la photo', () => fichier.click()),
     );
     return bloc;
+  }
+
+  // Statut administratif : monte avec les villes traversées
+  function statut(role) {
+    if (etat.verdict.rendu) {
+      const s = scores();
+      return s[role] >= s[autreRole(role)] ? 'Paul n°1, à titre définitif' : 'Paul n°2, sans appel';
+    }
+    const liste = (ep.statuts || []).map(lire);
+    const villes = etapes.filter((e) => e.skyline && atteinte(e)).length;
+    return liste[Math.min(villes, liste.length - 1)] || '';
   }
 
   // Tirage photo collé sur le papier : agrafe, scotch ou trombone
@@ -514,21 +513,56 @@
     return fichier;
   }
 
-  // ---------- Notes de service (messages du Bureau et de l'inspecteur) ----------
-  function journal(liste) {
+  // ---------- Transmission façon terminal ----------
+  function journal(liste, instantane) {
     const log = el('div', 'log');
     log.setAttribute('aria-live', 'polite');
-    liste.forEach((message) => {
-      const ligne = el('p', `log-ligne ${message.qui}`);
-      ligne.append(el('span', 'log-prefixe', PREFIXES[message.qui] || ''), el('span', 'log-texte', message.texte));
-      log.appendChild(ligne);
-    });
-    return { log };
+    let lecture = 0;
+    async function jouer(vite) {
+      const numeroLecture = ++lecture;
+      log.textContent = '';
+      for (const message of liste) {
+        if (numeroLecture !== lecture) return;
+        const ligne = el('p', `log-ligne ${message.qui}`);
+        ligne.append(el('span', 'log-prefixe', PREFIXES[message.qui] || ''), ' ');
+        const contenu = el('span');
+        ligne.appendChild(contenu);
+        log.appendChild(ligne);
+        if (calme || vite) { contenu.textContent = message.texte; continue; }
+        await attendre(message.qui === 'systeme' ? 300 : 700);
+        for (const signe of message.texte) {
+          if (numeroLecture !== lecture) return;
+          contenu.textContent += signe;
+          await attendre(16);
+        }
+      }
+    }
+    jouer(instantane);
+    return { log, jouer };
   }
+  // Messages joués une seule fois en animé, puis affichés directement
   function journalUnique(liste, cleLu) {
+    const sortie = journal(liste, etat.lus[cleLu]);
     etat.lus[cleLu] = true;
     sauver();
-    return journal(liste);
+    return sortie;
+  }
+  function transmission(titreBloc, liste, cleLu) {
+    const bloc = el('details', 'rappel transmission');
+    const resume = el('summary');
+    resume.append(el('span', 'rappel-num', '>>'), el('span', 'rappel-titre', titreBloc));
+    const corps = el('div', 'rappel-corps');
+    bloc.append(resume, corps);
+    let lance = false;
+    const lancer = () => {
+      if (lance) return;
+      lance = true;
+      const { log, jouer } = journalUnique(liste, cleLu);
+      corps.append(log, bouton('lien-console', 'relire', () => jouer(false)));
+    };
+    bloc.addEventListener('toggle', () => { if (bloc.open) lancer(); });
+    if (!etat.lus[cleLu]) bloc.open = true;
+    return bloc;
   }
 
   // ---------- Registre des points ----------
@@ -566,7 +600,72 @@
     return String(fnv(`${ep.id}:${lignes.join('|')}`) % 10000).padStart(4, '0');
   }
 
+  // ---------- Progression ----------
+  const jouables = ep.missions.filter((m) => m.date);
+  function progression() {
+    const total = jouables.length;
+    const faits = jouables.filter((m) => etat.valides[m.id]).length;
+    const bloc = el('section', 'progression');
+    const ligneTete = el('div', 'progression-tete');
+    ligneTete.append(el('span', 'eyebrow', T.progression), el('span', 'progression-compte', `${deuxChiffres(faits)} / ${deuxChiffres(total)}`));
+    const jauge = el('div', 'progression-jauge');
+    jouables.forEach((m) => jauge.appendChild(el('span', etat.valides[m.id] ? 'plein' : ouverte(m) ? 'ouvert' : '')));
+    bloc.append(ligneTete, jauge);
+
+    const s = scores();
+    const registre = el('div', 'registre');
+    registre.appendChild(el('span', 'eyebrow', T.registre));
+    const points = el('div', 'registre-points');
+    ROLES.forEach((r) => {
+      const ligne = el('span', `registre-ligne${r === etat.role ? ' moi' : ''}`);
+      ligne.append(el('span', null, surnom(r)), el('strong', null, String(s[r])));
+      points.appendChild(ligne);
+    });
+    registre.appendChild(points);
+    bloc.appendChild(registre);
+
+    return bloc;
+  }
+
+  // ---------- Missions ----------
+  // Une mission est terminée quand le formulaire est validé et le duel tranché
+  const terminee = (m) => etat.valides[m.id] && (!m.duel || etat.duels[m.id]) && (m.type !== 'final' || etat.verdict.rendu);
+
+  function mission(m) {
+    const bloc = el('details', 'rappel mission');
+    bloc.dataset.id = m.id;
+    const fini = terminee(m);
+    const ouv = ouverte(m);
+    bloc.classList.toggle('valide', !!fini);
+    bloc.classList.toggle('ferme', !ouv);
+    const resume = el('summary');
+    const etiquette = fini ? T.valide : ouv ? (etat.valides[m.id] ? (m.verdict ? 'verdict' : 'duel') : 'en cours') : m.date ? dateCourte(m.date) : '';
+    resume.append(
+      el('span', 'rappel-num', numero(m)),
+      el('span', 'rappel-titre', m.lieu),
+      el('span', `mission-etat${fini ? ' valide' : ouv ? ' actif' : ''}`, etiquette),
+    );
+    const corps = el('div', 'rappel-corps');
+    bloc.append(resume, corps);
+    bloc.addEventListener('toggle', () => {
+      if (bloc.open) ouverts.add(m.id); else ouverts.delete(m.id);
+      if (bloc.open && !corps.childElementCount) remplir(m, corps);
+    });
+    if (ouverts.has(m.id)) bloc.open = true;
+    return bloc;
+  }
+
+  // Nouveau rendu de l'onglet en gardant la position et l'épreuve dépliée
+  function rafraichir(m) {
+    ouverts.add(m.id);
+    const y = window.scrollY;
+    afficher();
+    window.scrollTo(0, y);
+  }
+
   function remplir(m, corps) {
+    corps.appendChild(el('p', 'mission-lieu', `${m.date ? `${dateCourte(m.date)} · ` : ''}${m.ville}`));
+
     if (!ouverte(m)) {
       corps.appendChild(el('p', 'mission-texte', `Ouverture le ${dateCourte(m.date)}, à minuit heure de Pékin.`));
       corps.appendChild(bouton('lien-console', T.forcer, () => {
@@ -594,7 +693,6 @@
     corps.appendChild(el('p', `mission-texte consigne${/[━─│┃]/.test(consigne) ? ' schema' : ''}`, consigne));
     if (m.faux && m.fauxPour === etat.role && !etat.valides[m.id]) corps.appendChild(journalUnique(messages(m.faux), `faux-${m.id}`).log);
 
-    if (m.type === 'final' && !etat.valides[m.id]) corps.appendChild(listeMots(ep.missions.filter((x) => x.piece && etat.valides[x.id]).map((x) => lire(x.piece))));
     if (etat.valides[m.id]) return corps.appendChild(recompense(m));
     if (m.type === 'synchro') return corps.appendChild(synchro(m));
     if (m.type === 'choix') return corps.appendChild(choix(m));
@@ -745,7 +843,7 @@
   function duel(m) {
     const d = m.duel;
     const bloc = el('section', 'duel');
-    bloc.append(el('p', 'eyebrow', 'Duel'), el('h3', 'duel-titre', lire(d.titre)), el('p', 'mission-texte', lire(d.consigne)));
+    bloc.append(el('h3', 'duel-titre', `Duel · ${lire(d.titre)}`), el('p', 'mission-texte', lire(d.consigne)));
     const suite = el('div', 'duel-suite');
     bloc.appendChild(suite);
 
@@ -843,7 +941,8 @@
     bloc.appendChild(souvenir(m));
     const suite = [...messages(m.apres && m.apres.commun), ...messages(m.apres && m.apres[etat.role])];
     if (suite.length) {
-      bloc.appendChild(journalUnique(suite, `apres-${m.id}`).log);
+      const { log, jouer } = journalUnique(suite, `apres-${m.id}`);
+      bloc.append(log, bouton('lien-console', 'relire', () => jouer(false)));
     }
     if (m.duel) bloc.appendChild(duel(m));
     if (m.verdict) bloc.appendChild(verdict(m));
@@ -939,7 +1038,7 @@
         liste.appendChild(el('li', null, `${numero(x)} · ${x.lieu} : toi « ${c.moi != null ? opt[c.moi] : '?'} », l’autre « ${c.autre != null ? opt[c.autre] : '?'} »`));
       }
     });
-    bloc.append(liste, el('p', 'note', 'Pour rectifier un duel : Mon dossier, puis Formulaires classés.'));
+    bloc.append(liste, el('p', 'note', 'Pour rectifier un duel, rouvre l’épreuve concernée et touche « rectifier ».'));
     return bloc;
   }
 
@@ -1202,6 +1301,36 @@
     });
   }
 
+  // ---------- Dossier du joueur : mots récupérés et pièces à conviction ----------
+  function dossier() {
+    const bloc = el('section', 'dossier');
+    const mots = ep.missions.filter((m) => m.piece && etat.valides[m.id]).map((m) => lire(m.piece));
+    const ligne = el('p', 'dossier-mots');
+    if (mots.length) {
+      // Ordre alphabétique : l'ordre de la phrase reste à retrouver
+      mots.sort((a, b) => a.localeCompare(b, 'fr')).forEach((mot) => ligne.appendChild(el('span', 'dossier-mot', mot)));
+    } else {
+      ligne.appendChild(el('span', 'note', 'rien pour l’instant'));
+    }
+    const mots_ = [el('p', 'eyebrow', T.mots), ligne];
+    const fiches = el('div', 'douane-liste');
+    fiches.appendChild(fiche(etat.role, true));
+    const autre = el('details', 'fiche-autre');
+    autre.append(el('summary', null, `Fiche de ${nom(autreRole(etat.role))}`));
+    autre.addEventListener('toggle', () => { if (autre.open && autre.childElementCount === 1) autre.appendChild(fiche(autreRole(etat.role), true)); });
+    fiches.appendChild(autre);
+    bloc.appendChild(fiches);
+    bloc.append(...mots_);
+    const album = ep.missions.filter((m) => etat.photos[m.id]);
+    if (album.length) {
+      bloc.appendChild(el('p', 'eyebrow', 'Pièces jointes'));
+      const planche = el('div', 'album');
+      album.forEach((m) => planche.appendChild(cliche(etat.photos[m.id], `${numero(m)} · ${m.lieu}`, maniere(m))));
+      bloc.appendChild(planche);
+    }
+    return bloc;
+  }
+
   function pied() {
     const bloc = el('div', 'jeu-pied');
     bloc.append(
@@ -1223,4 +1352,3 @@
 
   afficher();
 })();
-
