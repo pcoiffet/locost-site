@@ -163,37 +163,53 @@
     zone.appendChild((vues[onglet] || vueJour)());
   }
 
-  // Aujourd'hui : seulement ce qui est à faire
+  // Aujourd'hui : une carte claire pour l'épreuve du jour, ses étapes, puis la suivante
   function vueJour() {
     const vue = el('section', 'vue vue-jour');
     const date = aujourdhui();
     const premier = jouables[0].date;
     const jour = Math.round((Date.parse(date) - Date.parse(premier)) / 86400000) + 2; // jour 1 = départ de Paris, la veille
     const libelle = new Date(`${date}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
-    vue.appendChild(el('p', 'jour-date', jour >= 1 && jour <= 13 ? `${libelle} · jour ${jour} / 13` : libelle));
-    if (!etat.lus.intro) vue.appendChild(transmission(T.transmission, messages(ep.transmission), 'intro'));
+    const tete = el('header', 'jour-tete');
+    const avant = Math.round((Date.parse(premier) - Date.parse(date)) / 86400000) - 1;
+    tete.append(el('p', 'jour-date', libelle), el('p', 'jour-compte', jour >= 1 && jour <= 13 ? `Jour ${jour} sur 13` : avant > 0 ? `Départ dans ${avant} jour${avant > 1 ? 's' : ''}` : 'Voyage terminé'));
+    vue.appendChild(tete);
     if (!etat.portraits[etat.role]) vue.appendChild(pieceManquante());
     const aFaire = ep.missions.filter((m) => ouverte(m) && !terminee(m));
-    const duJour = aFaire.filter((m) => !m.date || m.date === date);
-    const enRetard = aFaire.filter((m) => m.date && m.date < date);
-    if (duJour.length) {
-      const liste = el('div', 'rappels missions');
-      duJour.forEach((m) => { ouverts.add(m.id); liste.appendChild(mission(m)); });
-      if (!duJour.some((m) => m.date)) vue.appendChild(el('h2', 'acte', 'Avant le départ'));
-      vue.appendChild(liste);
+    if (aFaire.length) {
+      aFaire.forEach((m) => vue.appendChild(carteDuJour(m, date)));
     } else {
       const repos = el('div', 'repos');
-      repos.append(cliche(`${images}lotus.jpg`, 'Bada Shanren, Lotus et canards (XVIIe s.)', 'scotch'), el('p', null, 'Aucun formulaire en attente. Le Bureau vous accorde un temps de repos réglementaire.'));
+      repos.append(cliche(`${images}lotus.jpg`, 'Bada Shanren, Lotus et canards (XVIIe s.)', 'scotch'), el('p', 'repos-titre', 'Rien à remplir aujourd’hui'), el('p', null, 'Le Bureau vous accorde un temps de repos réglementaire.'));
       vue.appendChild(repos);
-    }
-    if (enRetard.length) {
-      const liste = el('div', 'rappels missions');
-      enRetard.forEach((m) => liste.appendChild(mission(m)));
-      vue.append(el('h2', 'acte', 'En retard'), liste);
     }
     const prochain = compteARebours();
     if (prochain) vue.appendChild(prochain);
     return vue;
+  }
+
+  // Épreuve du jour : titre, lieu, étapes (formulaire, duel, classé), puis le contenu directement déplié
+  function carteDuJour(m, date) {
+    const carteJour = el('article', 'carte-jour');
+    carteJour.dataset.id = m.id;
+    const titre = el('header', 'carte-jour-tete');
+    const retard = m.date && m.date < date;
+    titre.append(
+      el('p', 'carte-jour-sur', retard ? `En retard · ${dateCourte(m.date)}` : m.date ? 'Épreuve du jour' : 'Avant le départ'),
+      el('h2', 'carte-jour-titre', `${numero(m)} · ${m.lieu}`),
+      el('p', 'carte-jour-ville', m.ville),
+    );
+    carteJour.appendChild(titre);
+    const etapesJour = [['Formulaire', true], ...(m.duel ? [['Duel', true]] : []), ...(m.verdict ? [['Verdict', true]] : [])];
+    const faite = (i) => (i === 0 ? !!etat.valides[m.id] : etapesJour[i][0] === 'Duel' ? !!etat.duels[m.id] : !!etat.verdict.rendu);
+    const courante = etapesJour.findIndex((_, i) => !faite(i));
+    const fil = el('ol', 'etapes-jour');
+    etapesJour.forEach(([nomEtape], i) => fil.appendChild(el('li', faite(i) ? 'faite' : i === courante ? 'courante' : '', nomEtape)));
+    carteJour.appendChild(fil);
+    const corps = el('div', 'carte-jour-corps');
+    carteJour.appendChild(corps);
+    remplir(m, corps);
+    return carteJour;
   }
 
   function compteARebours() {
@@ -219,28 +235,10 @@
     const m = ep.missions.find((x) => x.id === id);
     return m && (etat.valides[id] || (m.date && m.date <= aujourdhui()));
   });
+  // Carte : seulement le tracé, qui avance d'étape en étape
   function vueCarte() {
     const vue = el('section', 'vue vue-carte');
     vue.appendChild(carte());
-    const liste = el('div', 'rappels missions');
-    let acte = null;
-    ep.missions.forEach((m) => {
-      if (m.acte !== acte) {
-        acte = m.acte;
-        const tete = el('div', 'acte-tete');
-        const e = etapes.find((x) => x.nom === acte);
-        if (e && e.skyline) {
-          const image = el('img', 'skyline');
-          image.src = `${images}${e.skyline}`;
-          image.alt = '';
-          tete.appendChild(image);
-        }
-        tete.appendChild(el('h2', 'acte', e ? `${acte} · ${e.zh}` : acte));
-        liste.appendChild(tete);
-      }
-      liste.appendChild(mission(m));
-    });
-    vue.append(el('p', 'eyebrow', 'Carnet de route'), liste, cliche(`${images}carte-ancienne.jpg`, 'carte saisie en douane · archives du Bureau', 'trombone archive-carte'));
     return vue;
   }
 
@@ -312,31 +310,46 @@
     return vue;
   }
 
-  // Registre : score, duels et notifications
+  // Registre : d'abord le récit (notification officielle puis dépêches du Bureau), qui défile à l'arrivée,
+  // ensuite le score et les épreuves déjà ouvertes. Rien de ce qui n'est pas encore arrivé n'apparaît.
   function vueRegistre() {
     const vue = el('section', 'vue vue-registre');
+    vue.appendChild(recit());
     vue.appendChild(progression());
+    const ouvertes = ep.missions.filter(ouverte);
     const tableau = el('div', 'registre-duels');
-    tableau.appendChild(el('p', 'eyebrow', 'Duels et décisions'));
-    const liste = el('ol', 'registre-liste');
-    ep.missions.forEach((m) => {
-      if (!m.duel && m.type !== 'choix') return;
-      const li = el('li', ouverte(m) ? '' : 'futur');
-      const titre = m.duel ? lire(m.duel.titre) : m.lieu;
-      let resultat = '·';
-      if (m.duel && etat.duels[m.id]) resultat = etat.duels[m.id] === 'egal' ? 'égalité' : surnom(etat.duels[m.id]);
-      if (m.type === 'choix') {
-        const issue = issueChoix(m, etat.choix[m.id]);
-        if (issue) resultat = `${issue.moi >= 0 ? '+' : ''}${issue.moi} / ${issue.autre >= 0 ? '+' : ''}${issue.autre}`;
-      }
-      const lien = bouton('registre-lien', '', () => changerOnglet('carte', m.id));
-      lien.append(el('span', 'rappel-num', numero(m)), el('span', 'registre-titre', ouverte(m) ? titre : m.lieu), el('span', 'registre-gagnant', ouverte(m) ? resultat : dateCourte(m.date)));
-      li.appendChild(lien);
-      liste.appendChild(li);
-    });
+    tableau.appendChild(el('p', 'eyebrow', 'Épreuves, duels et décisions'));
+    const liste = el('div', 'rappels missions');
+    ouvertes.forEach((m) => liste.appendChild(mission(m)));
     tableau.appendChild(liste);
-    vue.append(tableau, transmission(T.transmission, messages(ep.transmission), 'intro'), pied());
+    const reste = ep.missions.length - ouvertes.length;
+    if (reste) tableau.appendChild(el('p', 'note registre-reste', `${reste} épreuve${reste > 1 ? 's' : ''} encore scellée${reste > 1 ? 's' : ''} par le Bureau.`));
+    vue.append(tableau, pied());
     return vue;
+  }
+
+  // Le récit : la notification d'ouverture, puis les messages reçus après chaque épreuve, joués une fois en animé
+  function recit() {
+    const bloc = el('section', 'recit');
+    bloc.appendChild(el('p', 'eyebrow', T.transmission));
+    const lecteurs = [];
+    const ajouter = (titreDepeche, liste, cle) => {
+      if (!liste.length) return;
+      const depeche = el('div', 'depeche');
+      if (titreDepeche) depeche.appendChild(el('p', 'depeche-titre', titreDepeche));
+      const sortie = journalUnique(liste, cle);
+      lecteurs.push(sortie);
+      depeche.appendChild(sortie.log);
+      bloc.appendChild(depeche);
+    };
+    ajouter(null, messages(ep.transmission), 'intro');
+    ep.missions.forEach((m) => {
+      if (!etat.valides[m.id] || !m.apres) return;
+      const suite = [...messages(m.apres.commun), ...messages(m.apres[etat.role])];
+      ajouter(`${m.date ? dateCourte(m.date) : 'Paris'} · ${m.lieu}`, suite, `apres-${m.id}`);
+    });
+    bloc.appendChild(bouton('lien-console', 'relire depuis le début', () => lecteurs.reduce((p, l) => p.then(() => l.jouer(false)), Promise.resolve())));
+    return bloc;
   }
 
   // ---------- Choix du dossier (rôle) ----------
@@ -350,6 +363,8 @@
         if (!window.confirm(`Confirmer : tu es ${nom(role)} ?`)) return;
         etat.role = role;
         sauver();
+        onglet = 'registre'; // première ouverture : le récit d'abord
+        try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-onglet`, onglet); } catch { /* private mode */ }
         afficher();
         window.scrollTo(0, 0);
       }));
@@ -547,24 +562,6 @@
     sauver();
     return sortie;
   }
-  function transmission(titreBloc, liste, cleLu) {
-    const bloc = el('details', 'rappel transmission');
-    const resume = el('summary');
-    resume.append(el('span', 'rappel-num', '>>'), el('span', 'rappel-titre', titreBloc));
-    const corps = el('div', 'rappel-corps');
-    bloc.append(resume, corps);
-    let lance = false;
-    const lancer = () => {
-      if (lance) return;
-      lance = true;
-      const { log, jouer } = journalUnique(liste, cleLu);
-      corps.append(log, bouton('lien-console', 'relire', () => jouer(false)));
-    };
-    bloc.addEventListener('toggle', () => { if (bloc.open) lancer(); });
-    if (!etat.lus[cleLu]) bloc.open = true;
-    return bloc;
-  }
-
   // ---------- Registre des points ----------
   function issueChoix(m, memoire) {
     if (!memoire || memoire.moi == null || memoire.autre == null) return null;
@@ -639,7 +636,8 @@
     bloc.classList.toggle('valide', !!fini);
     bloc.classList.toggle('ferme', !ouv);
     const resume = el('summary');
-    const etiquette = fini ? T.valide : ouv ? (etat.valides[m.id] ? (m.verdict ? 'verdict' : 'duel') : 'en cours') : m.date ? dateCourte(m.date) : '';
+    const gagnant = m.duel && etat.duels[m.id];
+    const etiquette = fini ? (gagnant ? (gagnant === 'egal' ? 'égalité' : surnom(gagnant)) : T.valide) : ouv ? (etat.valides[m.id] ? (m.verdict ? 'verdict' : 'duel') : 'en cours') : m.date ? dateCourte(m.date) : '';
     resume.append(
       el('span', 'rappel-num', numero(m)),
       el('span', 'rappel-titre', m.lieu),
@@ -1310,9 +1308,9 @@
       // Ordre alphabétique : l'ordre de la phrase reste à retrouver
       mots.sort((a, b) => a.localeCompare(b, 'fr')).forEach((mot) => ligne.appendChild(el('span', 'dossier-mot', mot)));
     } else {
-      ligne.appendChild(el('span', 'note', 'rien pour l’instant'));
+      ligne.appendChild(el('span', 'note', 'aucun pour l’instant : le premier arrive avec l’épreuve 00'));
     }
-    const mots_ = [el('p', 'eyebrow', T.mots), ligne];
+    const mots_ = [el('p', 'eyebrow', T.mots), el('p', 'note mots-aide', 'Chaque épreuve validée vous remet un mot du règlement du Bureau. Gardez-les : ils serviront le dernier soir.'), ligne];
     const fiches = el('div', 'douane-liste');
     fiches.appendChild(fiche(etat.role, true));
     const autre = el('details', 'fiche-autre');

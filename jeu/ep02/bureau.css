@@ -321,3 +321,42 @@ body.bureau { --texte: Georgia, "Times New Roman", "Noto Serif", serif; font: 16
 .bureau .skyline { max-height: 56px; width: auto; max-width: 100%; margin: 0; opacity: 0.7; }
 .bureau .acte-tete { margin-top: 26px; }
 .bureau .mission-texte.consigne.schema { font-family: var(--mono); font-size: 0.9rem; line-height: 1.35; overflow-x: auto; overflow-wrap: normal; }
+
+/* ---------- Refonte du 3 nov. : récit en tête du registre, carte seule, page du jour lisible ---------- */
+/* Barre d'onglets opaque jusqu'au bord de l'écran, avec un fondu au-dessus */
+.avec-onglets .onglets { box-shadow: 0 -18px 18px -6px #171614; }
+.avec-onglets .onglets::after { content: ""; position: absolute; top: 100%; left: 0; right: 0; height: 120px; background: #0f0e0c; }
+.bureau.avec-onglets .retour { margin-bottom: 8px; }
+
+/* Aujourd'hui */
+.jour-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+.bureau .jour-tete .jour-date { margin: 0; }
+.jour-compte { margin: 0; color: var(--fg); font: 700 0.75rem var(--mono); letter-spacing: 0.08em; white-space: nowrap; }
+.carte-jour { margin: 0 0 18px; padding: 16px 14px 18px; border: 1px solid var(--line); border-top: 2px solid var(--red); background: var(--papier); }
+.carte-jour-sur { margin: 0; color: var(--red); font: 0.66rem var(--mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.carte-jour-titre { margin: 4px 0 0; font: 400 1.35rem/1.25 var(--texte); }
+.carte-jour-ville { margin: 2px 0 0; color: var(--fg-dim); font-style: italic; font-size: 0.9rem; }
+.etapes-jour { display: flex; gap: 6px; margin: 14px 0 16px; padding: 0; list-style: none; counter-reset: etape; }
+.etapes-jour li { flex: 1; padding: 6px 4px; border: 1px solid var(--line); color: var(--fg-faint); font: 0.66rem var(--mono); letter-spacing: 0.08em; text-align: center; text-transform: uppercase; counter-increment: etape; }
+.etapes-jour li::before { content: counter(etape) ". "; }
+.etapes-jour li.courante { border-color: var(--fg); color: var(--fg); }
+.etapes-jour li.faite { border-color: var(--red); color: var(--red); }
+.etapes-jour li.faite::before { content: "✓ "; }
+.carte-jour .mission-lieu { display: none; }
+.carte-jour .cliche.archive { margin-top: 0; }
+.bureau .piece-manquante { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; margin: 0 0 14px; }
+.bureau .piece-manquante p { flex: 1 1 60%; font-size: 0.82rem; }
+.bureau .piece-manquante .tampon { display: none; }
+.bureau .piece-manquante .bouton { padding: 8px 12px; font-size: 0.66rem; }
+
+/* Registre : le récit d'abord */
+.recit { margin: 0 0 22px; padding: 14px 14px 10px; border: 1px solid var(--line); background: var(--papier); }
+.depeche + .depeche { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.depeche-titre { margin: 0 0 8px; color: var(--fg-faint); font: 0.66rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.recit .log { min-height: 0; }
+.recit > .lien-console { margin-top: 4px; font-size: 0.66rem; }
+.registre-reste { text-align: center; }
+.vue-registre .registre-duels { margin-top: 18px; }
+
+/* Dossier : à quoi servent les mots */
+.mots-aide { margin: -2px 0 8px; font-size: 0.78rem; }
