@@ -149,6 +149,7 @@
     const s = etat.role ? scores() : null;
     barreRole.textContent = etat.role ? ROLES.map((r) => `${surnom(r)} ${s[r]}`).join(' · ') : `EP${ep.numero}`;
     barreRole.className = 'barre-score';
+    barre.firstChild.textContent = etat.role ? `EP${ep.numero}` : T.barre;
     document.body.classList.toggle('avec-onglets', !!etat.role);
     nav.textContent = '';
     if (!etat.role) return choixRole();
@@ -178,7 +179,8 @@
     if (duJour.length) {
       const liste = el('div', 'rappels missions');
       duJour.forEach((m) => { ouverts.add(m.id); liste.appendChild(mission(m)); });
-      vue.append(el('h2', 'acte', duJour.some((m) => m.date) ? 'Épreuve du jour' : 'Avant le départ'), liste);
+      if (!duJour.some((m) => m.date)) vue.appendChild(el('h2', 'acte', 'Avant le départ'));
+      vue.appendChild(liste);
     } else {
       const repos = el('div', 'repos');
       repos.append(cliche(`${images}lotus.jpg`, 'Bada Shanren, Lotus et canards (XVIIe s.)', 'scotch'), el('p', null, 'Aucun formulaire en attente. Le Bureau vous accorde un temps de repos réglementaire.'));
@@ -305,7 +307,9 @@
   }
 
   function vueDossier() {
-    return dossier();
+    const vue = dossier();
+    vue.classList.add('vue', 'vue-dossier');
+    return vue;
   }
 
   // Registre : score, duels et notifications
@@ -378,11 +382,14 @@
       portrait.append(fichier, bouton('lien-console', libelle, () => fichier.click()));
     }
     const champs = el('dl', 'douane-champs');
+    const fixes = el('dl', 'douane-champs');
     (r.fiche || []).forEach((ligne) => {
       const texte = lire(ligne);
       const coupure = texte.indexOf(' : ');
-      champs.append(el('dt', null, coupure < 0 ? '' : texte.slice(0, coupure)), el('dd', null, coupure < 0 ? texte : texte.slice(coupure + 3)));
+      fixes.append(el('dt', null, coupure < 0 ? '' : texte.slice(0, coupure)), el('dd', null, coupure < 0 ? texte : texte.slice(coupure + 3)));
     });
+    if (!modifiable) champs.append(...fixes.childNodes);
+    else champs.append(el('dt', null, 'Nom'), el('dd', 'douane-nom', nom(role)));
     if (modifiable) {
       // Champs qui évoluent avec le voyage
       const s = scores();
@@ -395,6 +402,11 @@
     }
     corps.append(portrait, champs);
     carte.append(tete, corps);
+    if (modifiable) {
+      const plus = el('details', 'douane-plus');
+      plus.append(el('summary', null, 'fiche complète'), fixes);
+      carte.appendChild(plus);
+    }
     if (modifiable) {
       const visas = el('div', 'douane-visas');
       visas.appendChild(el('span', 'eyebrow', 'Visas d’entrée'));
@@ -413,17 +425,27 @@
     }
     if (r.avis) {
       const avis = el('footer', 'douane-avis');
-      avis.append(el('span', 'eyebrow', 'Observations de l’agent'), el('p', null, lire(r.avis)));
+      avis.appendChild(el('span', 'eyebrow', 'Observations de l’agent'));
+      const aucune = !ep.missions.some((m) => m.notes && etat.valides[m.id]);
+      if (!modifiable || aucune) avis.appendChild(el('p', null, lire(r.avis)));
       if (modifiable) {
         const notes = ep.missions.filter((m) => m.notes && etat.valides[m.id]).reverse();
+        const note = (m) => {
+          const li = el('li');
+          li.append(el('span', 'note-date', m.date ? dateCourte(m.date) : 'Paris'), el('span', null, lire(m.notes[role])));
+          return li;
+        };
         if (notes.length) {
           const liste = el('ul', 'douane-notes');
-          notes.forEach((m) => {
-            const li = el('li');
-            li.append(el('span', 'note-date', m.date ? dateCourte(m.date) : 'Paris'), el('span', null, lire(m.notes[role])));
-            liste.appendChild(li);
-          });
+          liste.appendChild(note(notes[0]));
           avis.appendChild(liste);
+        }
+        if (notes.length > 1) {
+          const anciennes = el('details', 'douane-plus');
+          const liste = el('ul', 'douane-notes');
+          notes.slice(1).forEach((m) => liste.appendChild(note(m)));
+          anciennes.append(el('summary', null, `notes précédentes (${notes.length - 1})`), liste);
+          avis.appendChild(anciennes);
         }
       }
       avis.appendChild(el('span', 'tampon', etat.verdict.rendu && modifiable ? (scores()[role] >= scores()[autreRole(role)] ? 'Paul n°1' : 'Paul n°2') : 'À surveiller'));
@@ -655,7 +677,7 @@
       return;
     }
 
-    if (m.image) corps.appendChild(cliche(`${images}${m.image}`, `archives du Bureau · ${m.lieu}`, `${maniere(m)} archive`));
+    if (m.image) corps.appendChild(cliche(`${images}${m.image}`, null, 'archive'));
     corps.appendChild(el('p', 'mission-texte', lire(m.commun)));
     const terrain = m.terrain === 'deux' || m.terrain === etat.role;
     corps.appendChild(el('p', 'mission-role', m.terrain === 'deux' ? T.deux : terrain ? T.terrain : T.cle));
@@ -1281,7 +1303,6 @@
   function dossier() {
     const bloc = el('section', 'dossier');
     const mots = ep.missions.filter((m) => m.piece && etat.valides[m.id]).map((m) => lire(m.piece));
-    bloc.appendChild(el('h2', 'acte', T.dossier));
     const ligne = el('p', 'dossier-mots');
     if (mots.length) {
       // Ordre alphabétique : l'ordre de la phrase reste à retrouver
@@ -1289,11 +1310,15 @@
     } else {
       ligne.appendChild(el('span', 'note', 'rien pour l’instant'));
     }
-    bloc.append(el('p', 'eyebrow', T.mots), ligne);
-    bloc.appendChild(el('p', 'eyebrow', 'Fiches de contrôle'));
+    const mots_ = [el('p', 'eyebrow', T.mots), ligne];
     const fiches = el('div', 'douane-liste');
-    [etat.role, autreRole(etat.role)].forEach((r) => fiches.appendChild(fiche(r, true)));
+    fiches.appendChild(fiche(etat.role, true));
+    const autre = el('details', 'fiche-autre');
+    autre.append(el('summary', null, `Fiche de ${nom(autreRole(etat.role))}`));
+    autre.addEventListener('toggle', () => { if (autre.open && autre.childElementCount === 1) autre.appendChild(fiche(autreRole(etat.role), true)); });
+    fiches.appendChild(autre);
     bloc.appendChild(fiches);
+    bloc.append(...mots_);
     const album = ep.missions.filter((m) => etat.photos[m.id]);
     if (album.length) {
       bloc.appendChild(el('p', 'eyebrow', 'Pièces jointes'));
