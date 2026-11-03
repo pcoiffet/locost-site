@@ -176,3 +176,81 @@ body.bureau ::selection { background: var(--red); color: #fff; }
 .bureau .progression-compte, .bureau .synchro-chiffres, .bureau .code-champ, .bureau .compteur-nombre { color: var(--fg); }
 .bureau .cadran-aiguille { background: var(--fg); }
 .bureau .rappel > summary:hover .rappel-titre, .bureau .bouton.role:hover, .bureau .bouton.choix-option:hover { color: var(--fg); }
+
+/* ---------- Menu en onglets ---------- */
+.bureau.avec-onglets { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+.bureau.avec-onglets .fiche-tete { display: none; } /* le titre ne sert qu'au choix du dossier */
+.bureau.avec-onglets .fiche.jeu { padding-top: 6px; }
+.bureau .barre { position: sticky; top: 0; z-index: 5; }
+.bureau .barre .point { min-width: 0; }
+.bureau .barre-score { flex: none; color: var(--fg); font-weight: 700; letter-spacing: 0.08em; }
+.onglets { display: none; }
+.avec-onglets .onglets {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  padding: 0 0 env(safe-area-inset-bottom);
+  background: #0f0e0c; border-top: 1px solid var(--line);
+}
+.onglets .onglet {
+  position: relative; min-height: 56px; padding: 0 4px; border: 0; background: none;
+  color: var(--fg-faint); font: 0.66rem var(--mono); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+}
+.onglets .onglet.actif { color: var(--fg); }
+.onglets .onglet.actif::before { content: ""; position: absolute; top: -1px; left: 22%; right: 22%; height: 2px; background: var(--red); }
+.bureau .vue { padding-top: 14px; }
+.jour-date { margin: 0 0 12px; color: var(--fg-dim); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.jour-date::first-letter { text-transform: uppercase; }
+.repos { text-align: center; color: var(--fg-dim); font-size: 0.85rem; }
+.repos .cliche { max-width: 170px; }
+.vue-jour .progression-prochain { margin-top: 18px; text-align: center; }
+.bureau .retour { margin-bottom: 24px; }
+
+/* ---------- Carte ---------- */
+.carte-chine { margin: 0 -8px 18px; }
+.carte-chine svg { display: block; width: 100%; height: auto; background: #12110f; border: 1px solid var(--line); }
+.carte-chine figcaption { margin-top: 6px; color: var(--fg-faint); font-size: 0.62rem; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; }
+.carte-grille { fill: none; stroke: rgba(214, 207, 192, 0.05); stroke-width: 1; }
+.carte-voisins { fill: #191816; stroke: #2e2b26; stroke-width: 1; }
+.carte-terre { fill: #23201c; stroke: #8a816f; stroke-width: 1.6; stroke-linejoin: round; }
+.carte-pays { fill: rgba(214, 207, 192, 0.07); font: 700 120px var(--mono); letter-spacing: 30px; }
+.carte-trace { fill: none; stroke: var(--red); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 12; }
+.carte-trace.via-tgv, .carte-trace.via-route { stroke-dasharray: 10 8; stroke-width: 3; }
+.carte-trace.nouveau { stroke-dasharray: var(--longueur); stroke-dashoffset: var(--longueur); animation: trace 2.4s ease-out 0.3s forwards; }
+@keyframes trace { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .carte-trace.nouveau { animation: none; stroke-dashoffset: 0; } }
+.carte-ville { fill: #12110f; stroke: var(--fg); stroke-width: 3; }
+.carte-ville.ici { fill: var(--red); stroke: var(--fg); animation: pouls 2s ease-in-out infinite; }
+@keyframes pouls { 50% { stroke-width: 7; } }
+.carte-nom { fill: var(--fg); font: 700 28px var(--mono); paint-order: stroke; stroke: #12110f; stroke-width: 6px; }
+.acte-tete { margin-top: 18px; }
+.acte-tete .acte { margin-top: 4px; }
+.skyline { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; opacity: 0.85; }
+.archive-carte { max-width: 320px; margin-top: 28px; }
+
+/* ---------- Fiche évolutive ---------- */
+.douane-champs dt.evolutif { color: var(--red); }
+.douane-champs dd.evolutif { font-weight: 700; }
+.douane-visas { margin: 0 14px 14px; padding: 10px 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.15); }
+.visas-page { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+.visa {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 64px;
+  border: 2px solid currentColor; border-radius: 6px; transform: rotate(var(--angle, -4deg)); opacity: 0.85;
+  font-size: 0.55rem; letter-spacing: 0.08em; text-align: center; line-height: 1.2;
+}
+.visa strong { font-size: 1rem; letter-spacing: 0.1em; }
+.visa small { font-size: 0.5rem; }
+.visa.rouge { color: #c94a3c; } .visa.bleu { color: #6f8fc9; } .visa.violet { color: #a07ac0; } .visa.vert { color: #6fa585; }
+.visa:nth-child(even) { border-radius: 50%; }
+.visa.vide { border: 1px dashed var(--line); transform: none; opacity: 1; }
+.douane-notes { margin: 10px 0 18px; padding: 0; list-style: none; font-size: 0.8rem; }
+.douane-notes li { display: grid; grid-template-columns: 3.4em 1fr; gap: 8px; padding: 5px 0; border-top: 1px dotted var(--line); color: var(--fg); }
+.note-date { color: var(--fg-faint); font-size: 0.7rem; }
+
+/* ---------- Registre ---------- */
+.registre-duels { margin-top: 20px; }
+.registre-liste { margin: 8px 0 18px; padding: 0; list-style: none; }
+.registre-liste li { border-bottom: 1px solid var(--line); }
+.registre-lien { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 8px; width: 100%; padding: 10px 2px; border: 0; background: none; color: var(--fg); font: 0.82rem var(--mono); text-align: left; cursor: pointer; }
+.registre-liste li.futur .registre-lien { color: var(--fg-faint); }
+.registre-gagnant { color: var(--red); font-weight: 700; white-space: nowrap; }
+.registre-liste li.futur .registre-gagnant { color: var(--fg-faint); font-weight: 400; }

@@ -1,27 +1,35 @@
 // Garde l'épisode 02 dans le téléphone pour y jouer sans réseau.
 // Stratégie : réponse depuis le cache, mise à jour en arrière-plan quand le réseau répond.
 // Changer VERSION (et la liste) quand un fichier ou un ?v=N change.
-const VERSION = 'locost-ep02-v4';
+const VERSION = 'locost-ep02-v5';
 const FICHIERS = [
   '/jeu/ep02/',
-  '/jeu/ep02/episode.js?v=2',
-  '/jeu/moteur/missions.js?v=3',
+  '/jeu/ep02/episode.js?v=3',
+  '/jeu/ep02/carte.js?v=1',
+  '/jeu/moteur/missions.js?v=4',
   '/jeu/moteur/jeu.css?v=7',
-  '/jeu/ep02/bureau.css?v=3',
+  '/jeu/ep02/bureau.css?v=4',
   '/css/locost.css?v=7',
   '/js/terminal.js?v=7',
   '/jeu/ep02/images/avion.svg',
   '/jeu/ep02/images/bouddha.svg',
+  '/jeu/ep02/images/carte-ancienne.jpg',
   '/jeu/ep02/images/croisiere.svg',
   '/jeu/ep02/images/guanyin.svg',
   '/jeu/ep02/images/guerriers.svg',
   '/jeu/ep02/images/jade.svg',
   '/jeu/ep02/images/jardin.svg',
+  '/jeu/ep02/images/laozi.jpg',
   '/jeu/ep02/images/liziba.svg',
+  '/jeu/ep02/images/lotus.jpg',
   '/jeu/ep02/images/muraille.svg',
   '/jeu/ep02/images/pagode.svg',
   '/jeu/ep02/images/passeport.svg',
   '/jeu/ep02/images/silhouette.svg',
+  '/jeu/ep02/images/skyline-chongqing.svg',
+  '/jeu/ep02/images/skyline-pekin.svg',
+  '/jeu/ep02/images/skyline-shanghai.svg',
+  '/jeu/ep02/images/skyline-xian.svg',
   '/jeu/ep02/images/tgv.svg',
   '/jeu/ep02/images/toit.svg',
 ];

@@ -123,13 +123,216 @@
     document.body.insertBefore(bandeau, racine);
   }
 
+  // ---------- Onglets : Aujourd'hui · Carte · Dossier · Registre ----------
+  const ONGLETS = [['jour', 'Aujourd’hui'], ['carte', 'Carte'], ['dossier', 'Dossier'], ['registre', 'Registre']];
+  let onglet = 'jour';
+  try { onglet = sessionStorage.getItem(`${CLE_SAUVEGARDE}-onglet`) || 'jour'; } catch { /* private mode */ }
+  const ouverts = new Set(); // missions dépliées par le joueur, gardées d'un rendu à l'autre
+  const nav = el('nav', 'onglets');
+  nav.setAttribute('aria-label', 'Menu du jeu');
+  document.body.appendChild(nav);
+
+  function changerOnglet(id, missionId) {
+    onglet = id;
+    try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-onglet`, id); } catch { /* private mode */ }
+    if (missionId) ouverts.add(missionId);
+    afficher();
+    window.scrollTo(0, 0);
+    if (missionId) {
+      const cible = zone.querySelector(`.mission[data-id="${missionId}"]`);
+      if (cible) cible.scrollIntoView({ block: 'start' });
+    }
+  }
+
   function afficher() {
     zone.textContent = '';
-    barreRole.textContent = etat.role ? nom(etat.role) : `EP${ep.numero}`;
+    const s = etat.role ? scores() : null;
+    barreRole.textContent = etat.role ? ROLES.map((r) => `${surnom(r)} ${s[r]}`).join(' · ') : `EP${ep.numero}`;
+    barreRole.className = 'barre-score';
+    document.body.classList.toggle('avec-onglets', !!etat.role);
+    nav.textContent = '';
     if (!etat.role) return choixRole();
-    zone.append(transmission(T.transmission, messages(ep.transmission), 'intro'));
-    if (!etat.portraits[etat.role]) zone.appendChild(pieceManquante());
-    zone.append(progression(), listeMissions(), dossier(), pied());
+    ONGLETS.forEach(([id, libelle]) => {
+      const b = bouton(`onglet${id === onglet ? ' actif' : ''}`, libelle, () => changerOnglet(id));
+      b.dataset.onglet = id;
+      if (id === onglet) b.setAttribute('aria-current', 'page');
+      nav.appendChild(b);
+    });
+    const vues = { jour: vueJour, carte: vueCarte, dossier: vueDossier, registre: vueRegistre };
+    zone.appendChild((vues[onglet] || vueJour)());
+  }
+
+  // Aujourd'hui : seulement ce qui est à faire
+  function vueJour() {
+    const vue = el('section', 'vue vue-jour');
+    const date = aujourdhui();
+    const premier = jouables[0].date;
+    const jour = Math.round((Date.parse(date) - Date.parse(premier)) / 86400000) + 2; // jour 1 = départ de Paris, la veille
+    const libelle = new Date(`${date}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    vue.appendChild(el('p', 'jour-date', jour >= 1 && jour <= 13 ? `${libelle} · jour ${jour} / 13` : libelle));
+    if (!etat.lus.intro) vue.appendChild(transmission(T.transmission, messages(ep.transmission), 'intro'));
+    if (!etat.portraits[etat.role]) vue.appendChild(pieceManquante());
+    const aFaire = ep.missions.filter((m) => ouverte(m) && !terminee(m));
+    const duJour = aFaire.filter((m) => !m.date || m.date === date);
+    const enRetard = aFaire.filter((m) => m.date && m.date < date);
+    if (duJour.length) {
+      const liste = el('div', 'rappels missions');
+      duJour.forEach((m) => { ouverts.add(m.id); liste.appendChild(mission(m)); });
+      vue.append(el('h2', 'acte', duJour.some((m) => m.date) ? 'Épreuve du jour' : 'Avant le départ'), liste);
+    } else {
+      const repos = el('div', 'repos');
+      repos.append(cliche(`${images}lotus.jpg`, 'Bada Shanren, Lotus et canards (XVIIe s.)', 'scotch'), el('p', null, 'Aucun formulaire en attente. Le Bureau vous accorde un temps de repos réglementaire.'));
+      vue.appendChild(repos);
+    }
+    if (enRetard.length) {
+      const liste = el('div', 'rappels missions');
+      enRetard.forEach((m) => liste.appendChild(mission(m)));
+      vue.append(el('h2', 'acte', 'En retard'), liste);
+    }
+    const prochain = compteARebours();
+    if (prochain) vue.appendChild(prochain);
+    return vue;
+  }
+
+  function compteARebours() {
+    const prochaine = jouables.find((m) => !ouverte(m));
+    if (!prochaine) return null;
+    const ligne = el('p', 'progression-prochain');
+    const maj = () => {
+      const reste = Math.max(0, debutJour(prochaine.date) - Date.now());
+      const h = Math.floor(reste / 3600000);
+      const j = Math.floor(h / 24);
+      const mn = Math.floor((reste % 3600000) / 60000);
+      ligne.textContent = `prochaine épreuve · ${prochaine.ville} · ${j ? `${j} j ` : ''}${deuxChiffres(h % 24)} h ${deuxChiffres(mn)}`;
+      if (reste === 0 && !dateForcee) afficher();
+    };
+    maj();
+    const minuteur = setInterval(() => { if (!ligne.isConnected) clearInterval(minuteur); else maj(); }, 30000);
+    return ligne;
+  }
+
+  // Carte : le tracé avance d'étape en étape, puis le carnet de route
+  const etapes = ep.etapes || [];
+  const atteinte = (e) => e.missions.some((id) => {
+    const m = ep.missions.find((x) => x.id === id);
+    return m && (etat.valides[id] || (m.date && m.date <= aujourdhui()));
+  });
+  function vueCarte() {
+    const vue = el('section', 'vue vue-carte');
+    vue.appendChild(carte());
+    const liste = el('div', 'rappels missions');
+    let acte = null;
+    ep.missions.forEach((m) => {
+      if (m.acte !== acte) {
+        acte = m.acte;
+        const tete = el('div', 'acte-tete');
+        const e = etapes.find((x) => x.nom === acte);
+        if (e && e.skyline) {
+          const image = el('img', 'skyline');
+          image.src = `${images}${e.skyline}`;
+          image.alt = '';
+          tete.appendChild(image);
+        }
+        tete.appendChild(el('h2', 'acte', e ? `${acte} · ${e.zh}` : acte));
+        liste.appendChild(tete);
+      }
+      liste.appendChild(mission(m));
+    });
+    vue.append(el('p', 'eyebrow', 'Carnet de route'), liste, cliche(`${images}carte-ancienne.jpg`, 'carte saisie en douane · archives du Bureau', 'trombone archive-carte'));
+    return vue;
+  }
+
+  function carte() {
+    const C = window.CARTE_CHINE;
+    const cadre = el('figure', 'carte-chine');
+    if (!C) return cadre;
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${C.largeur} ${C.hauteur}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Carte de la Chine et tracé du voyage');
+    const xy = (e) => [(e.lon - C.lon0) * C.kx, (C.lat1 - e.lat) * C.ky];
+    const noeud = (tag, attrs, texte) => {
+      const n = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+      if (texte) n.textContent = texte;
+      svg.appendChild(n);
+      return n;
+    };
+    // Graticule discret tous les 5°
+    let grille = '';
+    for (let lon = 75; lon <= 135; lon += 5) { const x = (lon - C.lon0) * C.kx; grille += `M${x} 0V${C.hauteur}`; }
+    for (let lat = 20; lat <= 54; lat += 5) { const y = (C.lat1 - lat) * C.ky; grille += `M0 ${y}H${C.largeur}`; }
+    noeud('path', { d: grille, class: 'carte-grille' });
+    noeud('path', { d: C.voisins, class: 'carte-voisins' });
+    noeud('path', { d: C.chine, class: 'carte-terre' });
+    noeud('text', { x: C.largeur * 0.12, y: C.hauteur * 0.42, class: 'carte-pays' }, '中 国');
+
+    const faites = etapes.filter(atteinte);
+    // Arrivée depuis Paris : flèche qui entre par l'ouest
+    const depart = [0, (C.lat1 - 40) * C.ky];
+    let precedent = depart;
+    faites.forEach((e, i) => {
+      const [x, y] = xy(e);
+      const [px, py] = precedent;
+      const courbe = e.via === 'avion';
+      const cx = (px + x) / 2;
+      const cy = Math.min(py, y) - (courbe ? Math.hypot(x - px, y - py) * 0.25 : 0);
+      const d = courbe ? `M${px} ${py}Q${cx} ${cy} ${x} ${y}` : `M${px} ${py}L${x} ${y}`;
+      const trait = noeud('path', { d, class: `carte-trace via-${e.via}` });
+      if (i === faites.length - 1) {
+        // Dernier segment : se dessine à l'ouverture de l'onglet
+        const longueur = trait.getTotalLength ? trait.getTotalLength() : 600;
+        trait.style.setProperty('--longueur', longueur);
+        trait.classList.add('nouveau');
+      }
+      precedent = [x, y];
+    });
+    etapes.forEach((e) => {
+      if (!faites.includes(e)) return;
+      const [x, y] = xy(e);
+      const ici = e === faites[faites.length - 1];
+      noeud('circle', { cx: x, cy: y, r: ici ? 9 : 6, class: `carte-ville${ici ? ' ici' : ''}` });
+      if (!e.skyline) return; // excursions (Suzhou, Dazu) : point seul, pour ne pas chevaucher la grande ville voisine
+      const gauche = x > C.largeur * 0.7 ? -1 : 1;
+      noeud('text', { x: x + 16 * gauche, y: y - 14, class: 'carte-nom', 'text-anchor': gauche < 0 ? 'end' : 'start' }, `${e.nom} ${e.zh}`);
+    });
+    if (!faites.length) noeud('text', { x: 40, y: depart[1] - 16, class: 'carte-nom' }, 'départ : Paris →');
+    cadre.appendChild(svg);
+    const reste = etapes.length - faites.length;
+    cadre.appendChild(el('figcaption', null, reste ? `${faites.length} étape${faites.length > 1 ? 's' : ''} sur ${etapes.length} · la suite se dévoile en route` : 'itinéraire complet'));
+    return cadre;
+  }
+
+  function vueDossier() {
+    return dossier();
+  }
+
+  // Registre : score, duels et notifications
+  function vueRegistre() {
+    const vue = el('section', 'vue vue-registre');
+    vue.appendChild(progression());
+    const tableau = el('div', 'registre-duels');
+    tableau.appendChild(el('p', 'eyebrow', 'Duels et décisions'));
+    const liste = el('ol', 'registre-liste');
+    ep.missions.forEach((m) => {
+      if (!m.duel && m.type !== 'choix') return;
+      const li = el('li', ouverte(m) ? '' : 'futur');
+      const titre = m.duel ? lire(m.duel.titre) : m.lieu;
+      let resultat = '·';
+      if (m.duel && etat.duels[m.id]) resultat = etat.duels[m.id] === 'egal' ? 'égalité' : surnom(etat.duels[m.id]);
+      if (m.type === 'choix') {
+        const issue = issueChoix(m, etat.choix[m.id]);
+        if (issue) resultat = `${issue.moi >= 0 ? '+' : ''}${issue.moi} / ${issue.autre >= 0 ? '+' : ''}${issue.autre}`;
+      }
+      const lien = bouton('registre-lien', '', () => changerOnglet('carte', m.id));
+      lien.append(el('span', 'rappel-num', numero(m)), el('span', 'registre-titre', ouverte(m) ? titre : m.lieu), el('span', 'registre-gagnant', ouverte(m) ? resultat : dateCourte(m.date)));
+      li.appendChild(lien);
+      liste.appendChild(li);
+    });
+    tableau.appendChild(liste);
+    vue.append(tableau, transmission(T.transmission, messages(ep.transmission), 'intro'), pied());
+    return vue;
   }
 
   // ---------- Choix du dossier (rôle) ----------
@@ -180,11 +383,50 @@
       const coupure = texte.indexOf(' : ');
       champs.append(el('dt', null, coupure < 0 ? '' : texte.slice(0, coupure)), el('dd', null, coupure < 0 ? texte : texte.slice(coupure + 3)));
     });
+    if (modifiable) {
+      // Champs qui évoluent avec le voyage
+      const s = scores();
+      const autre = autreRole(role);
+      const ajout = (cle, valeur) => champs.append(el('dt', 'evolutif', cle), el('dd', 'evolutif', valeur));
+      ajout('Statut', statut(role));
+      ajout('Paulitude', `${s[role]} point${s[role] > 1 ? 's' : ''} · ${s[role] > s[autre] ? 'en tête du registre' : s[role] < s[autre] ? 'à la traîne' : 'à égalité'}`);
+      const gagnes = Object.values(etat.duels).filter((g) => g === role).length;
+      ajout('Duels remportés', String(gagnes));
+    }
     corps.append(portrait, champs);
     carte.append(tete, corps);
+    if (modifiable) {
+      const visas = el('div', 'douane-visas');
+      visas.appendChild(el('span', 'eyebrow', 'Visas d’entrée'));
+      const page = el('div', 'visas-page');
+      const COULEURS = ['rouge', 'bleu', 'violet', 'vert', 'rouge', 'bleu'];
+      etapes.forEach((e, i) => {
+        if (!atteinte(e)) return page.appendChild(el('span', 'visa vide', ''));
+        const premiere = ep.missions.find((m) => m.id === e.missions[0]);
+        const visa = el('span', `visa ${COULEURS[i]}`);
+        visa.style.setProperty('--angle', `${((i * 37) % 17) - 8}deg`);
+        visa.append(el('strong', null, e.zh), el('span', null, e.nom.toUpperCase()), el('small', null, premiere && premiere.date ? `ENTRÉE ${dateCourte(premiere.date)}.26` : 'ENTRÉE'));
+        page.appendChild(visa);
+      });
+      visas.appendChild(page);
+      carte.appendChild(visas);
+    }
     if (r.avis) {
       const avis = el('footer', 'douane-avis');
-      avis.append(el('span', 'eyebrow', 'Observations de l’agent'), el('p', null, lire(r.avis)), el('span', 'tampon', 'À surveiller'));
+      avis.append(el('span', 'eyebrow', 'Observations de l’agent'), el('p', null, lire(r.avis)));
+      if (modifiable) {
+        const notes = ep.missions.filter((m) => m.notes && etat.valides[m.id]).reverse();
+        if (notes.length) {
+          const liste = el('ul', 'douane-notes');
+          notes.forEach((m) => {
+            const li = el('li');
+            li.append(el('span', 'note-date', m.date ? dateCourte(m.date) : 'Paris'), el('span', null, lire(m.notes[role])));
+            liste.appendChild(li);
+          });
+          avis.appendChild(liste);
+        }
+      }
+      avis.appendChild(el('span', 'tampon', etat.verdict.rendu && modifiable ? (scores()[role] >= scores()[autreRole(role)] ? 'Paul n°1' : 'Paul n°2') : 'À surveiller'));
       carte.appendChild(avis);
     }
     return carte;
@@ -205,6 +447,17 @@
       bouton('bouton', 'Prendre la photo', () => fichier.click()),
     );
     return bloc;
+  }
+
+  // Statut administratif : monte avec les villes traversées
+  function statut(role) {
+    if (etat.verdict.rendu) {
+      const s = scores();
+      return s[role] >= s[autreRole(role)] ? 'Paul n°1, à titre définitif' : 'Paul n°2, sans appel';
+    }
+    const liste = (ep.statuts || []).map(lire);
+    const villes = etapes.filter((e) => e.skyline && atteinte(e)).length;
+    return liste[Math.min(villes, liste.length - 1)] || '';
   }
 
   // Tirage photo collé sur le papier : agrafe, scotch ou trombone
@@ -349,39 +602,10 @@
     registre.appendChild(points);
     bloc.appendChild(registre);
 
-    // Prochaine ouverture : compte à rebours
-    const prochaine = jouables.find((m) => !ouverte(m));
-    if (prochaine) {
-      const ligne = el('p', 'progression-prochain');
-      const maj = () => {
-        const reste = Math.max(0, debutJour(prochaine.date) - Date.now());
-        const h = Math.floor(reste / 3600000);
-        const j = Math.floor(h / 24);
-        const mn = Math.floor((reste % 3600000) / 60000);
-        ligne.textContent = `prochaine épreuve · ${prochaine.ville} · ${j ? `${j} j ` : ''}${deuxChiffres(h % 24)} h ${deuxChiffres(mn)}`;
-        if (reste === 0 && !dateForcee) afficher();
-      };
-      maj();
-      const minuteur = setInterval(() => { if (!ligne.isConnected) clearInterval(minuteur); else maj(); }, 30000);
-      bloc.appendChild(ligne);
-    }
     return bloc;
   }
 
   // ---------- Missions ----------
-  function listeMissions() {
-    const liste = el('div', 'rappels missions');
-    let acte = null;
-    ep.missions.forEach((m) => {
-      if (m.acte !== acte) {
-        acte = m.acte;
-        liste.appendChild(el('h2', 'acte', acte));
-      }
-      liste.appendChild(mission(m));
-    });
-    return liste;
-  }
-
   // Une mission est terminée quand le formulaire est validé et le duel tranché
   const terminee = (m) => etat.valides[m.id] && (!m.duel || etat.duels[m.id]) && (m.type !== 'final' || etat.verdict.rendu);
 
@@ -402,22 +626,19 @@
     const corps = el('div', 'rappel-corps');
     bloc.append(resume, corps);
     bloc.addEventListener('toggle', () => {
+      if (bloc.open) ouverts.add(m.id); else ouverts.delete(m.id);
       if (bloc.open && !corps.childElementCount) remplir(m, corps);
     });
-    if (ouv && !fini && m.date === aujourdhui() && !zone.querySelector('.mission[data-auto]')) {
-      bloc.dataset.auto = '1';
-      bloc.open = true;
-    }
+    if (ouverts.has(m.id)) bloc.open = true;
     return bloc;
   }
 
+  // Nouveau rendu de l'onglet en gardant la position et l'épreuve dépliée
   function rafraichir(m) {
-    const ancien = zone.querySelector(`.mission[data-id="${m.id}"]`);
-    const nouveau = mission(m);
-    nouveau.open = true;
-    ancien.replaceWith(nouveau);
-    zone.querySelector('.progression').replaceWith(progression());
-    zone.querySelector('.dossier').replaceWith(dossier());
+    ouverts.add(m.id);
+    const y = window.scrollY;
+    afficher();
+    window.scrollTo(0, y);
   }
 
   function remplir(m, corps) {
@@ -711,7 +932,6 @@
       etat.photos[m.id] = donnees;
       sauver();
       bloc.replaceWith(souvenir(m));
-      zone.querySelector('.dossier').replaceWith(dossier());
     });
     if (etat.photos[m.id]) bloc.appendChild(cliche(etat.photos[m.id], `pièce jointe · ${m.lieu}`, maniere(m)));
     bloc.append(fichier, bouton('lien-console', etat.photos[m.id] ? 'remplacer la photo' : 'joindre une photo souvenir au dossier', () => fichier.click()));
@@ -767,6 +987,7 @@
     const annonce = el('div', 'verdict-annonce');
     annonce.append(el('p', 'eyebrow', 'Paul n°1'), el('p', 'verdict-nom', nom(gagnant)), el('p', 'verdict-score', `${s[gagnant]} points contre ${s[perdant]}. ${nom(perdant)} devient Paul n°2.`));
     bloc.appendChild(annonce);
+    bloc.appendChild(cliche(`${images}laozi.jpg`, 'Zhang Lu, Laozi chevauchant un buffle (XVIe s.)', 'agrafe'));
     const image = certificat(lire(v.certificat), gagnant, perdant, s);
     bloc.appendChild(image);
     const lien = el('a', 'bouton', 'Enregistrer le certificat');
