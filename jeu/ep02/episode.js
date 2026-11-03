@@ -72,6 +72,91 @@ window.EPISODE = {
     "mots": "Mots du règlement",
     "autre": "l’autre candidat"
   },
+  "etapes": [
+    {
+      "id": "xian",
+      "nom": "Xi’an",
+      "zh": "西安",
+      "lat": 34.34,
+      "lon": 108.94,
+      "via": "avion",
+      "missions": [
+        "M01",
+        "M02"
+      ],
+      "skyline": "skyline-xian.svg"
+    },
+    {
+      "id": "pekin",
+      "nom": "Pékin",
+      "zh": "北京",
+      "lat": 39.9,
+      "lon": 116.4,
+      "via": "avion",
+      "missions": [
+        "M03",
+        "M04",
+        "M05",
+        "M06"
+      ],
+      "skyline": "skyline-pekin.svg"
+    },
+    {
+      "id": "shanghai",
+      "nom": "Shanghai",
+      "zh": "上海",
+      "lat": 31.23,
+      "lon": 121.47,
+      "via": "tgv",
+      "missions": [
+        "M07",
+        "M09"
+      ],
+      "skyline": "skyline-shanghai.svg"
+    },
+    {
+      "id": "suzhou",
+      "nom": "Suzhou",
+      "zh": "苏州",
+      "lat": 31.3,
+      "lon": 120.62,
+      "via": "route",
+      "missions": [
+        "M08"
+      ]
+    },
+    {
+      "id": "chongqing",
+      "nom": "Chongqing",
+      "zh": "重庆",
+      "lat": 29.56,
+      "lon": 106.55,
+      "via": "avion",
+      "missions": [
+        "M10",
+        "M12"
+      ],
+      "skyline": "skyline-chongqing.svg"
+    },
+    {
+      "id": "dazu",
+      "nom": "Dazu",
+      "zh": "大足",
+      "lat": 29.7,
+      "lon": 105.72,
+      "via": "route",
+      "missions": [
+        "M11"
+      ]
+    }
+  ],
+  "statuts": [
+    "Suspect",
+    "Toléré",
+    "Recevable",
+    "Candidat sérieux",
+    "En attente du verdict"
+  ],
   "prefixes": {
     "systeme": "[BUREAU]",
     "zhang": "[ZHANG·0001]",
@@ -115,6 +200,10 @@ window.EPISODE = {
       "ville": "Paris",
       "lieu": "Contrôle d’identité",
       "terrain": "dj",
+      "notes": {
+        "dj": "~NgcTDhoBDgoaAFIXFQURDwZNHAIGFlIXERwUEQpDTy8NRTAQAg0AFk8ZHQwdExdFs88AQxwYHBMNBgZL",
+        "auv": "~IwsADQEIHUMOBBEMEQRBWU8ABhANRRMQUBgOCgEZTwcBAxQMEwENBkNNCQIdERdFFA1BAAcIGQYdHVIVHx0TQwwMAwYaRR6H8PEAFhsCCQwLEAFL"
+      },
       "image": "passeport.svg",
       "commun": "~NgcTDhoBDgoaAFIVAqvIAgMMDQ8NSVKm0EgTBgIdAwoaRRcLAw0MAQMITwIeBBwRUAQEQwuuxhMJFwZLUDgAEE8JjePxptsGAgkPQwICARcapttFs8hBD43t9gIdEQAAXg==",
       "dj": "~JAcPQ6zEDBEJC1IEFg4IAAcIT1RIFgsIEgcNBhxNCwZIEQAKGRtBFx0MBhcbSVIVHA0IDRxNABZIBwAMA6vIEEFNK6DBBgAMA0UNBhxNrMNICZDl6QkUFx0ITwAJCxYMFAkVQwsMARBICZDl6QcTBx0IQ0MMAFICER0CCwpNrMNIAQAKGRwET08OBwIZEBdFBBoAChtNCwZIDRMQBEgEDU8PDhBGb3iH5OmD9+6P++KK8fOH5OlBQ0+P++KK8fNFkvzggfvsT0NIh+bkkvzgQ4357oH85FJFUIr14o357oH85JDx8Yr14mWP++KK8fOH5OmD9+6P++JIRVKH5OmD9+6P++KK8fOH5OlBQ0+P++KK8fNFkvzggfvsT0NIh+bkkvzgQ4357oH85HiH5OmD9+6P++KK8fOH5OlBQ0+P++KK8fNFkvzggfvsT0NIh+bkkvzgQ4357oH85FJFUIr14o357oH85JDx8Yr14mVnjffph+bkUIr14o357kNIRZDx8Yr14k+P++KK8fNFUEiD9+6P++KK8fOH5OmD9+5njffph+bkUIr14o357kNIRZDx8Yr14o357oH85JDx8UhBQ4357oH85FKH5OmD9+5njffph+bkkvzggfvsjffpRVJFkvzggfvsT4H85JDx8UhBQ4357oH85FKH5OmD9+4=",
@@ -137,6 +226,10 @@ window.EPISODE = {
       "ville": "Xi’an",
       "lieu": "Petite Pagode de l’Oie sauvage",
       "terrain": "auv",
+      "notes": {
+        "dj": "~MUgREQYeTw8JRQIKAw1BBwobDg0cRR4EUBgABAAJCk1IJFIBFQUADQuuxkMbh/L8GQRBGk8MGQIBEVIQHkglKU8eChdIFQCm2R4UQw4YTxAHCB8ABEY=",
+        "auv": "~IAAOFwBNAAUODBEMFQQNBk9XTxENAx4ABEgFFk8eAA8NDB5FAx0TQwMITwAaptALFURBD43t9gIYFRMXFQENQw5NC6DTRRAEGRsSBh1NA4Ho/BcdAAcSChsEAA1G"
+      },
       "image": "pagode.svg",
       "verrou": {
         "type": "gps",
@@ -167,6 +260,10 @@ window.EPISODE = {
       "ville": "Xi’an",
       "lieu": "Armée de terre cuite",
       "terrain": "dj",
+      "notes": {
+        "dj": "~MUgVBgEZrMpIARdFFgkIEQpNrMoLCgcRFRpBEA5NAgoQERMVFUiiw08YAUMPEBcXAgEEEU8JCkMcAAAXFUgCFgYZCk1IJAcGBQYEQx2uxgILERsKHkRBAAAAAgZIFh0LUBgUAQMEDEMABBAMBB0ED0E=",
+        "auv": "~MwcPBQADCxZIARcQCEgHDAYeTwIeABFFBQZBBBoIHREBAABLUCQEEE8KGgYaFxsAAhtNQwoYF09IChwRUAwEEE8OBwYeAAcdUBsCFgMdG6DBFlw="
+      },
       "image": "guerriers.svg",
       "verrou": {
         "type": "photo",
@@ -193,6 +290,10 @@ window.EPISODE = {
       "ville": "Xi’an → Pékin",
       "lieu": "Jour de transit",
       "terrain": "auv",
+      "notes": {
+        "dj": "~MUgFDB0ABkMYABwBEQYVQwMITxUHCVxFIBoEDgYIHUMLCgcGGA0TQwwCAQUHFx8AUAsODRwZDherzFIBFRgUChxNXVNZXFw=",
+        "auv": "~MUgFBgIMAQerzFIWGUgNge/0AA1IEQAKBR4AChtNCxZIFhMMHhxMDQoOGwIBFxdFs8hBM6zEBAoGS1I3s8ERDAEeCkMMEFInBRoEAhpNVUMGChxL"
+      },
       "image": "avion.svg",
       "commun": "~OgcUEU8JCkMcFxMLAwEVTU8hCkMqEAAAER1BEx0CCQocAFIBBUgXDANNHwwdF1ITs8ETCgkEChFIEx0WUAsODQEMBhAbBBwGFRtBDwYDCBYBFgYMAR0EEEE=",
       "auv": "~JgcVEQpNHxEHBhoEGQYEQwsIHBcBCxMRGQcPQxyP7/qrzBEXGRxBhuP6i9nES1Ihs8ECEQYeTw8NFlIBFR0ZQwwMHQILEbHNAg0SQ6zNTw+K5esEBRwTBk8ODg0MDBYEBERBEA4DHEMEAAFFHgcMDgofQ0MYCgcXUBkUge/0Bg9ICRcWUBoEFx0CGhUNRRYEHhtBEAADTw8NHRsUBQ1P",
@@ -248,6 +349,10 @@ window.EPISODE = {
       "ville": "Pékin",
       "lieu": "Grande Muraille de Mutianyu",
       "terrain": "dj",
+      "notes": {
+        "dj": "~MUgGEQ4bBkMEBFIoBRoACgMBCkMNC1IWFUgRDw4ECA0JCwZFFA0SQwIMHQAAAAFLUCkUEQ4EG0MYFx0VHxuiyk8JjePxHFIKAg8ADQYeChFIEBwAUBsOCh2uxgZG",
+        "auv": "~MQ4HCh0ACkMZEBdFHA0SQxkCAwAJCwFFFIrh+i4YGQYaAhwAUBsODRtNHw8dFlIMHRgTBhweBgwGCxMLBBtPQzmuxhEBAxsGERwIDAFNCg1IBh0QAhtP"
+      },
       "image": "muraille.svg",
       "commun": "~NQZBEQAYGwZIExcXA0gNAk8gGhEJDB4JFURBFQAZHQZIAgcMFA1BFQAYHEMMChwLFUgUDU8dChcBEVIGHx0TEE8JCkMLDRsLHwESTU8hCkMOCgAIBQQACh0ITwcdRRgKBRpBEI3t9hpIBhMGGA1P",
       "dj": "~IA0PBw4DG0MEAFIGHx0TEENNCwYFBBwBFUgAFk8KGgoMAFIGHwUMBgEZTwwGRRYMBEijyE8qHQIGARdFPR0TAgYBAwZIp8lFFQZBAAcEAQwBFl5FFQZBEwYDFgoGRVoJkuj4oMYOHQocEAAAUA0PQwMIGxcaAAFFHAkVCgEIHEpGRSCm2RiiyxsIQg8NRbHFUASD4/YMGhcaAFIGEQYFCgsMG01IMR0LUAQEGwYcGgZIAZDl6QAIBh1NHwYdEVIWFRoXCh1D",
@@ -271,6 +376,10 @@ window.EPISODE = {
       "ville": "Pékin",
       "lieu": "Cité interdite",
       "terrain": "auv",
+      "notes": {
+        "dj": "~I4rh+goeG0MJFgEMA0gHAgwITwIdRQEQFEgCDAIACkMEh/L8FQURBh0IGhFGRT4AUCoUEQoMGkMaBAIVFQQNBk8cGoHo/BsJUAaD4/YMTw0BRQYXs9wPBk8DBkMYAAAIGRtP",
+        "auv": "~MUgFBgIMAQerzFIKs9FBEApNGxEHEAQEGRxBD43t9gYGEQCm2Q1BEazEHAYaE7HMFUgAFhdNLhYeAAACHgkVEEFNJg9IC5Dl6RFBBgFNDkMYBAFL"
+      },
       "image": "toit.svg",
       "verrou": {
         "type": "boussole",
@@ -323,6 +432,10 @@ window.EPISODE = {
       "ville": "Pékin",
       "lieu": "Temple des Lamas",
       "terrain": "dj",
+      "notes": {
+        "dj": "~MUgTBhwdCgAcpttFHA1BEAYBCg0LAFIBBUgVBgIdAwZGRSAAEwcTB08dChEbChwLFQRBCwAAAA8HAgem2UY=",
+        "auv": "~MUgHEQAZG6DBRQEKHkgREQAdHQZIBgCm0gYEQx8CGhFIFR0XBA0TQwwFDg0LAFxFIqvIEBoBGwIcRRwKHkgCDAEOAxYJCwZL"
+      },
       "image": "bouddha.svg",
       "commun": "~JQZBAQAYCwcABFICs8EADRtNGwIBCR6m2UgFAgEeTxYGRQEABQRBFx0CAQBIARdFAwkPFw4BQUM9CxdFAAkTFwYITwcNRR4QGUgEEBtNBg0eDAEMEgQET08OAA4FAFIJFRtBEQobCg0dFlIBkuj4FgFNKylG",
       "dj": "~NA0XAgEZTw8NRRUXEQYFQw0CGgcMDRNJUBwTDBobCkMbEABFBQZBEw4DAQYJEFIWEUgJAhoZChYaRRMQXQwEEBwYHEMMEFIWHwRNQwoDTw6rzQYXFRtPQysEHE4EBFKm0EgNge/0DhYcFxdFEwkPBwYJDhdG",
@@ -347,6 +460,10 @@ window.EPISODE = {
       "lieu": "TGV",
       "terrain": "deux",
       "type": "synchro",
+      "notes": {
+        "dj": "~s+hBUFpdTwgFShpFFAkPEE8BCkM8IiRJUAlBEhoMAQdICLHPHQ1BFx0CGhWrzFIJFUgMDBYIAUMMh/L8s8IVEQpNCg1IFxcRERoFTQ==",
+        "auv": "~MUgHAgYZTwcNFlIIHxwSQwkBrMoLDbHMA0gEDU8dDhcHDAFFAA0PBw4DG0McCgcRUAQEQxsfDgkNEVw="
+      },
       "image": "tgv.svg",
       "commun": "~NgcTDhoBDgoaAFIBFUgVEQ4DHBMHFwZLUCQEQwwCCwZIAQdFGgcUEU8MHREBExdFFQZBBwoYF0MFChsRGavIEE8cGgpIBhoEHg8EDRtNGwwdERcWUAQEEE9eX0MbABEKHgwEEEFNLhAbAB8HHA0bTgMIHEMJExMLBEgQFo3t9gYECRcWUA0ZEwYfCg0cSw==",
       "dj": "~JAlBDgAEGwqrzFIBBUgCDAsITxCK5esEFg4IAAcITwABSBYAAxsOFhxDTy+K5esEBRwTBk8ODg0MDBYEBEgAQwMMTwAHCwEMFwYEQwuP7/oJFgEAHQoNAggIQQ==",
@@ -415,6 +532,10 @@ window.EPISODE = {
       "lieu": "Jardins de Suzhou",
       "terrain": "deux",
       "type": "choix",
+      "notes": {
+        "dj": "~OQYVBh0fAASrzFKm0EgyFhUFABZGRTam2QsNAh0MGwoHCwFFBg0TEKzEChBIBAdFFAcSEAYIHU0=",
+        "auv": "~OQYVBh0fAASrzFKm0EgyFhUFABZGRTam2QsNAh0MGwoHCwFFBg0TEKzEChBIBAdFFAcSEAYIHU0="
+      },
       "image": "jardin.svg",
       "commun": "~MRsSBhYIFU4eCgcWUBkUBgMcGgZIFRMXBEgFAgEeTxYGRRgEAgwIDUNNDAsJBgcLUAwEQxwCAUMLpsYRs8FPQyOP7/oBCwEVFQsVBhofTxUHEAFFs8ECEQYZTwYGRQIXGR6iykE=",
       "dj": "~KzIpIiEqrdRYVUJULUgxEQAdABABERsKHkgCDAELBgcNCwYMFQQNBkNNHaDBFhcXBqvIBk+uz0MeCgcWUBsEFgNDTyerzBwKHgsEGU8YAQZIDAAXs8EGFgMMHQocpttFFA1BD43t9gIdEQAAUAsADQsECwIcRVoLkuj4CgIdABEcAFIJERkUBgMBCk9ICRdFMh0TBg4YTw2K5esAAxxBEw4eTxENAhMXFAkPF0ZNChdIDxdFBgcUEE8MDAAHFxYAUFpBEwAEARcbS1I2GUgXDBoeTxUHEAFFFKvIDQADDAYSRQYKBRtBDwoeTwcNEApJUAIEQx0IGwoaAFJUUBgOCgEZT6DIRRENEQsUDUFnZTGrzAIKHgwSQxwIGg9ERQEEHhtBAAADHBYEERcXUASD4/YMGhcaAFxFNQYSFgYZCkMbAAcJFQUEDRtBTwcBERcWXR4OFhxNDAZIFAcAUB4OFhxNDhUNH1IGGAcIEAZD",
@@ -475,6 +596,10 @@ window.EPISODE = {
       "ville": "Shanghai",
       "lieu": "Temple du Bouddha de jade",
       "terrain": "auv",
+      "notes": {
+        "dj": "~MUgPoMYKAAABpttFER1BDg4fDAurzFIGHwUMBk8EA0MGptsCHwsIBk8eChBIBhMGGA0VEE8JCkMsL1JfUBgOFh1NFaDBFx1L",
+        "auv": "~PA1BIQAYCwcABFIBFUgLAgsITwYbEVIGGAkUFQpNAxYBRRMQAxsITU8hCkMbEBgABEgAQx8MHQ+rzFIBFUijyE8OABYbDBxFstNP"
+      },
       "image": "jade.svg",
       "verrou": {
         "type": "gps",
@@ -531,6 +656,10 @@ window.EPISODE = {
       "ville": "Chongqing",
       "lieu": "Station Liziba",
       "terrain": "dj",
+      "notes": {
+        "dj": "~MUgSFh0brMoLEFIEBUgRCgIIARdGRSIXs8EVBgEJTxIdAFIGkuj4BhwZTwQaptAGFUiiw08BjePxABwRAgmizQEIAgYGEVIAHkgABRsIHU0=",
+        "auv": "~MUgCDAIdDhGrzFIJFUgRCgIIARdIAQdFIwECCxoMAUOrxVIQHkgXDAMODg1IAZDl6SkUFQofCA0NS1ImFUgFBh0DBgYaRRcWBEiiyhsIBg0cSw=="
+      },
       "image": "liziba.svg",
       "commun": "~JQYEQxkEAw8NRQYAHAQEDgoDG0MNC1IVFQYVBk8cGgZICRdFHavIFx0CTxcaBAQAAhsEQxoDTwoFCBcQEgQEQwuP7/oABBAMBAkVCgADQUMkAFInBRoEAhpNDkMLCRMWA6vIQwMITwcHFgEMFRpBocRNGhEKBBwMAwUEQwwfrMoJERsDUKraTQ==",
       "dj": "~s+hBLwYXBgEJSVIXFRiiyx0ITw8NRRwQHavIEQBNCwZICRNFHAEGDQpNHhYBRQYXER4EERwITw+K5esMHQUEFg0BCkNAFgcXUAQEEE8dDg0GABMQCEgFFk8ArMocFx1MXkglChxAAwZIptJFHIrh+g4YGxENRREEHgwIBw4ZQQ==",
@@ -553,6 +682,10 @@ window.EPISODE = {
       "ville": "Dazu",
       "lieu": "Sculptures de Baoding",
       "terrain": "auv",
+      "notes": {
+        "dj": "~MUgFBgIMAQerzFIWGUgNAk8JrMoNFgEAUAkUG08ABg8EAFIIEQEPEE8eDhUJDAZFHQEZBh1D",
+        "auv": "~PQENDwpNAgIBCwFJUAkUABoDTxMNDBULFUZBLw5NC6DBAAEWFUgEF08BCkMbEBgABEgSBk8eAA0cRREKHRgTChxD"
+      },
       "image": "guanyin.svg",
       "commun": "~NAkPEE8BChBIAxMJEQESBhxNCwZIJxMKFAEPBENNGg0NRTUQEQYYCgFNCwwaptsAUAyiyh8BAAoNRQEAA0gDEQ4eTwYGRbHMBg0PFw4EA01IKhxFHIrh+g4dHwYECRdFHAlBJBoMARoBC1IEBRBBDgYBAwZICBMMHhtPQyoBAwZIC5Dl6Q0PQw5NHwIbRR8MHAQETU8hCkMqEAAAER1BAk8fCgAHCAIRs8FP",
       "auv": "~NA0XAgEZTw8JRTUQEQYYCgFNDhYQRR8MHAQEQwIMBg0bSVIRAgcUFQpNDAwFBxsAHkgFBk8ADgoGFlIKHhxBoMYZrMpIF7HMFQQNBgIIARdIBh0IAByiygoeTw8HFwFFFA1BEA5NHQYbERMQAgkVCgADT0sYBBwLFQkUQwAYTwQdDBYAWUZBJwYeQg8NRbHFUASD4/YMGhcaAFIGEQYFCgsMG00=",
