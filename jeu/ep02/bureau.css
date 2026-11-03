@@ -320,3 +320,4 @@ body.bureau { --texte: Georgia, "Times New Roman", "Noto Serif", serif; font: 16
 .bureau .registre-titre { font-family: var(--texte); font-size: 0.98rem; }
 .bureau .skyline { max-height: 56px; width: auto; max-width: 100%; margin: 0; opacity: 0.7; }
 .bureau .acte-tete { margin-top: 26px; }
+.bureau .mission-texte.consigne.schema { font-family: var(--mono); font-size: 0.9rem; line-height: 1.35; overflow-x: auto; overflow-wrap: normal; }
