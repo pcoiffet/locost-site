@@ -1,316 +1,323 @@
-/* Épisode 02 · Le Bureau des Doublons. Feuille autonome (la page ne charge ni locost.css ni jeu.css).
-   DA « Bureau de nuit », version papier : des documents posés sur un bureau sombre.
-   Le texte courant est en serif, la machine à écrire ne sert qu'aux valeurs saisies et aux codes. */
-:root {
-  --bg: #141311;
-  --feuille: #1c1a17;
-  --feuille-2: #23201c;
-  --fg: #d4ccbb; /* gris-beige : jamais de blanc pur */
-  --fg-dim: #9a907d;
-  --fg-faint: #6a6254;
-  --line: #36322b;
-  --red: #c4473a;
-  --papier: #c9bfa8; /* fiche de douane : papier vieilli, volontairement terne */
-  --papier-ombre: #b7ac93;
-  --encre: #2a251d;
-  --encre-pale: #5b5245;
-  --tirage: #e2dac6;
-  --texte: Georgia, "Times New Roman", "Noto Serif", serif;
-  --machine: "Courier New", Courier, "Nimbus Mono PS", monospace;
-}
-*, *::before, *::after { box-sizing: border-box; }
-html { background: var(--bg); -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(ellipse at 50% -10%, rgba(255, 236, 200, 0.05), transparent 55%), var(--bg);
-  color: var(--fg);
-  font: 16px/1.6 var(--texte);
-}
-::selection { background: var(--red); color: #fff; }
-a { color: var(--fg); }
-button { font: inherit; color: inherit; }
-:focus-visible { outline: 1px solid var(--red); outline-offset: 3px; }
-[hidden] { display: none !important; }
-
-/* ---------- Mise en page ---------- */
-.jeu { max-width: 560px; margin: 0 auto; padding: 18px 16px calc(40px + env(safe-area-inset-bottom)); }
-.barre {
-  position: sticky; top: 0; z-index: 5;
-  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-  padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top));
-  background: rgba(20, 19, 17, 0.94); border-bottom: 1px solid var(--line);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-}
-.barre-titre { font-style: italic; color: var(--fg-dim); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.barre-score { flex: none; font: 700 0.82rem var(--machine); color: var(--fg); letter-spacing: 0.04em; }
-.bandeau-test { display: flex; gap: 10px; overflow-x: auto; white-space: nowrap; padding: 6px 16px; border-bottom: 1px solid var(--line); font: 0.68rem var(--machine); color: var(--fg-faint); scrollbar-width: none; }
-.bandeau-test::-webkit-scrollbar { display: none; }
-.bandeau-test a { color: var(--fg-dim); text-decoration: none; }
-.bandeau-test a.actif { color: var(--red); }
-.retour { display: block; width: max-content; margin: 0 auto 28px; color: var(--fg-faint); font-size: 0.8rem; text-decoration: none; }
-
-.note { color: var(--fg-faint); font-size: 0.82rem; font-style: italic; }
-.eyebrow { display: block; margin: 0 0 6px; color: var(--fg-dim); font-size: 0.8rem; font-variant: small-caps; letter-spacing: 0.06em; }
-
-/* ---------- Boutons ---------- */
-.bouton {
-  display: inline-block; padding: 12px 18px; border: 1px solid var(--fg); border-radius: 2px;
-  background: transparent; color: var(--fg); font: 0.95rem var(--texte); text-align: center; text-decoration: none; cursor: pointer;
-}
-.bouton:hover, .bouton:focus-visible { background: var(--fg); color: var(--bg); }
-.bouton:disabled { border-color: var(--fg-faint); color: var(--fg-faint); background: none; cursor: default; }
-.lien-console, .lien-archives, .lien-retour, .fd-photo-bouton {
-  padding: 4px 0; border: 0; background: none; color: var(--fg-dim); font: 0.85rem var(--texte); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); cursor: pointer;
-}
-.lien-console.discret { color: var(--fg-faint); font-size: 0.78rem; }
-.lien-archives { display: block; margin: 34px auto 0; }
-.lien-retour { margin-bottom: 8px; text-decoration: none; }
-
-/* ---------- Tampon rouge, de travers comme un vrai ---------- */
-.tampon {
-  display: inline-block; padding: 3px 10px; border: 2.5px double var(--red); border-radius: 3px;
-  color: var(--red); font: 700 0.78rem var(--machine); letter-spacing: 0.18em; text-transform: uppercase;
-  transform: rotate(-5deg); opacity: 0.85; mix-blend-mode: normal;
-}
-.tampon.rond {
-  display: inline-flex; align-items: center; justify-content: center; width: 74px; height: 74px; padding: 0;
-  border-radius: 50%; border-width: 3px; white-space: pre; text-align: center; line-height: 1.2; font-size: 0.72rem; letter-spacing: 0.1em; transform: rotate(-12deg);
-}
-
-/* ---------- Choix du dossier ---------- */
-.roles { display: flex; flex-direction: column; gap: 26px; padding-top: 10px; }
-.roles-titre { margin: 0; font-size: 1.7rem; font-weight: 400; letter-spacing: 0.01em; text-align: center; }
-.roles-texte { margin: -14px 0 0; color: var(--fg-dim); text-align: center; font-style: italic; }
-.role { display: flex; flex-direction: column; gap: 12px; }
-.role .bouton { align-self: center; min-width: 220px; }
-
-/* ---------- Fiche de contrôle à l'ancienne ---------- */
-.fiche-douane {
-  position: relative; color: var(--encre);
+/* Épisode 02 · Le Bureau des Doublons : DA « Bureau de nuit » (formulaires administratifs sur fond
+   anthracite, texte gris-beige, tampons rouges, photos en tirages clairs), choisie par Paul le 2 nov. 2026.
+   Redéfinit les variables de /css/locost.css : les composants de jeu.css suivent d'eux-mêmes. */
+body.bureau {
+  --bg: #171614;
+  --bg-2: #1e1c19;
+  --fg: #d6cfc0; /* gris-beige : jamais de blanc pur */
+  --fg-dim: #9a917f;
+  --fg-faint: #6a6355;
+  --line: #3a362f;
+  --papier: #1f1d1a;
+  --tirage: #e8e0cc; /* les photos restent des tirages clairs */
+  --encre-tirage: #5a5246;
+  --encart: rgba(255, 255, 255, 0.04);
+  --green: #c94a3c; /* l'accent devient le rouge des tampons */
+  --green-dim: rgba(201, 74, 60, 0.2);
+  --red: #c94a3c;
+  --cyan: #24407a;
+  --mono: "Courier New", Courier, "Nimbus Mono PS", monospace;
   background:
-    radial-gradient(ellipse at 15% 10%, rgba(255, 255, 255, 0.16), transparent 50%),
-    radial-gradient(ellipse at 90% 95%, rgba(110, 80, 40, 0.18), transparent 55%),
-    linear-gradient(var(--papier), var(--papier-ombre));
-  border-radius: 2px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 10px 24px rgba(0, 0, 0, 0.55);
-  padding: 14px 14px 12px;
-  transform: rotate(-0.4deg);
+    radial-gradient(ellipse at 20% 0%, rgba(255, 240, 210, 0.04), transparent 60%),
+    var(--bg);
+  color: var(--fg);
+  font-size: 15.5px;
 }
-/* Perforations d'archive sur la marge gauche */
-.fiche-douane::before {
-  content: ""; position: absolute; top: 30%; left: 5px; width: 7px; height: 40%;
-  background: radial-gradient(circle, var(--bg) 3px, transparent 3.5px) 0 0 / 7px 50% repeat-y; opacity: 0.85;
+html:has(body.bureau) { background: #171614; }
+body.bureau::after { background: none; } /* pas de lignes de balayage sur du papier */
+body.bureau ::selection { background: var(--red); color: #fff; }
+
+/* En-tête administratif */
+.bureau .barre { background: #0f0e0c; color: var(--fg-dim); border-bottom: 0; letter-spacing: 0.12em; }
+.bureau .barre .point { color: var(--fg-dim); }
+.bureau .barre .point::before { content: "■ "; color: var(--red); }
+.bureau .fiche-tete { padding-bottom: 20px; border-bottom: 3px double var(--fg); }
+.bureau .glitch { color: var(--fg); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.bureau .glitch::before, .bureau .glitch::after { content: none; }
+.bureau .fiche-tete .eyebrow { color: var(--fg-dim); }
+.bureau .terminal { color: var(--fg-dim); }
+.bureau .terminal::after { color: var(--red); }
+.bureau .eyebrow { color: var(--fg-dim); }
+
+/* Boutons : encre pleine, inversés au survol */
+.bureau .bouton { border: 1.5px solid var(--fg); background: transparent; color: var(--fg); }
+.bureau .bouton:hover, .bureau a.bouton:hover, .bureau .bouton:focus-visible { background: var(--fg); color: var(--bg); border-color: var(--fg); animation: none; }
+.bureau .bouton:disabled { border-color: var(--fg-faint); color: var(--fg-faint); background: transparent; }
+.bureau .lien-console { color: var(--fg-dim); }
+.bureau .retour { background: var(--bg); border-color: var(--fg); color: var(--fg); }
+
+/* Fiches des candidats */
+.bureau .roles-choix { grid-template-columns: 1fr; max-width: 420px; gap: 18px; }
+.fiche-candidat { position: relative; padding: 18px 18px 16px; border: 1.5px solid var(--fg); background: var(--papier); text-align: left; }
+.fiche-candidat::before { content: "DOSSIER"; position: absolute; top: -9px; left: 12px; padding: 0 6px; background: var(--bg); color: var(--red); font-size: 0.65rem; letter-spacing: 0.25em; font-weight: 700; }
+.fiche-candidat h2 { margin: 0 0 10px; font-size: 1.1rem; letter-spacing: 0.04em; }
+.fiche-candidat ul { margin: 0 0 16px; padding: 0; list-style: none; color: var(--fg-dim); font-size: 0.82rem; }
+.fiche-candidat li { padding: 4px 0; border-bottom: 1px dotted var(--line); }
+.fiche-candidat .bouton { width: 100%; }
+
+/* Registre de points */
+.registre { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; padding: 10px 12px; border: 1.5px solid var(--fg); }
+.registre-points { display: flex; gap: 16px; }
+.registre-ligne { display: flex; gap: 6px; align-items: baseline; color: var(--fg-dim); font-size: 0.8rem; }
+.registre-ligne strong { color: var(--fg); font-size: 1.15rem; }
+.registre-ligne.moi strong { color: var(--red); }
+.bureau .progression-jauge span.plein { background: var(--red); }
+.bureau .progression-jauge span.ouvert { background: var(--fg-faint); }
+
+/* Épreuves */
+.bureau .acte { color: var(--fg); font-weight: 700; border-bottom: 1.5px solid var(--fg); }
+.bureau .mission-texte.consigne { background: var(--encart); border-left: 3px solid var(--fg); }
+.bureau .mission-role { border-color: var(--fg); color: var(--fg); }
+.bureau .mission-etat.actif::before { content: "● "; color: var(--red); }
+.bureau .code-champ { background: var(--encart); border: 0; border-bottom: 1.5px solid var(--fg); color: var(--fg); }
+.bureau .code-champ:focus { outline: none; border-bottom-color: var(--red); background: rgba(255, 255, 255, 0.07); }
+.bureau .joker-texte { border-color: var(--fg-dim); }
+
+/* Tampon rouge, de travers comme un vrai */
+.bureau .tampon, .bureau .tampon.valide {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 3px double var(--red);
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  opacity: 0.88;
 }
-.fd-tete { display: flex; justify-content: space-between; gap: 10px; padding: 0 0 8px 8px; border-bottom: 2px solid var(--encre); }
-.fd-tete > div { display: flex; flex-direction: column; }
-.fd-pays { font-size: 0.68rem; letter-spacing: 0.12em; color: var(--encre-pale); }
-.fd-org { font-size: 0.78rem; font-variant: small-caps; letter-spacing: 0.06em; }
-.fd-titre { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em; }
-.fd-ref { align-items: flex-end; text-align: right; font-size: 0.68rem; color: var(--encre-pale); }
-.fd-numero { margin-top: 2px; font: 700 0.78rem var(--machine); color: #8f2a20; white-space: nowrap; }
-.fd-identite { display: grid; grid-template-columns: 96px 1fr; border-bottom: 1px solid var(--encre); margin-left: 8px; }
-.fd-photo { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 8px 8px 0; border-right: 1px solid var(--encre); }
-.fd-photo-vide {
-  display: flex; align-items: center; justify-content: center; width: 78px; aspect-ratio: 35 / 45;
-  border: 1px dashed var(--encre-pale); color: var(--encre-pale); font-size: 0.66rem; text-align: center; white-space: pre; line-height: 1.3;
-}
-.fd-photo .cliche.identite { width: 80px; margin: 0; }
-.fd-photo-bouton { color: var(--encre-pale); font-size: 0.72rem; text-decoration-color: var(--encre-pale); }
-.fd-cases { display: grid; grid-template-columns: 1fr 1fr; }
-.fd-identite .fd-cases { grid-template-columns: 1fr; }
-.fd-suite { margin-left: 8px; }
-.fd-case { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 1px; padding: 5px 8px 6px; border-bottom: 1px solid rgba(42, 37, 29, 0.45); }
-.fd-case.demi { grid-column: auto; }
-.fd-case.demi + .fd-case.demi { border-left: 1px solid rgba(42, 37, 29, 0.45); }
-.fd-identite .fd-case:last-child { border-bottom: 0; }
-.fd-suite .fd-case:last-child { border-bottom: 0; }
-.fd-libelle { font-size: 0.66rem; color: var(--encre-pale); line-height: 1.3; }
-.fd-libelle b { display: inline-block; min-width: 1.3em; margin-right: 2px; font-weight: 700; color: var(--encre); }
-.fd-zh { margin-left: 5px; white-space: nowrap; }
-.fd-valeur { font: 0.92rem/1.35 var(--machine); color: #1d1913; text-shadow: 0 0 0.6px rgba(29, 25, 19, 0.6); }
-.fd-pied { position: relative; display: flex; align-items: flex-end; gap: 8px; margin: 10px 0 0 8px; min-height: 40px; font-size: 0.7rem; color: var(--encre-pale); }
-.fd-signature { font: italic 1rem var(--texte); color: #2c3d63; transform: rotate(-3deg); border-bottom: 1px solid var(--encre-pale); padding: 0 12px 0 4px; }
-.fd-pied .tampon { position: absolute; right: 2px; bottom: 0; color: #a3271c; border-color: #a3271c; font-size: 0.72rem; }
-.pli .fiche-douane { margin: 12px 0 4px; }
 
-/* ---------- Convocation ---------- */
-.convocation {
-  position: relative; margin: 6px 0 22px; padding: 20px 18px 18px;
-  background: var(--feuille); border: 1px solid var(--line); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-}
-.lettre-entete { display: flex; flex-direction: column; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); text-align: center; }
-.lettre-zh { font-size: 1.15rem; letter-spacing: 0.3em; color: var(--red); }
-.lettre-service { font-variant: small-caps; letter-spacing: 0.08em; }
-.lettre-ref { color: var(--fg-faint); font-size: 0.78rem; font-style: italic; }
-.convocation p { margin: 0 0 12px; }
-.lettre-objet { font-weight: 700; }
-.lettre-point { padding-left: 1.4em; text-indent: -1.4em; }
-.lettre-signature { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 6px; font-style: italic; color: var(--fg-dim); }
-.convocation-pli { margin: 0 0 18px; }
-.convocation-pli > summary { cursor: pointer; color: var(--fg-faint); font-size: 0.85rem; list-style: none; }
-.convocation-pli > summary::-webkit-details-marker { display: none; }
-.convocation-pli > summary::before { content: "+ "; color: var(--red); }
-.convocation-pli[open] > summary::before { content: "− "; }
-.convocation-pli .convocation { margin-top: 10px; }
+/* Journal de l'inspecteur */
+.bureau .log-ligne { color: var(--fg); }
+.bureau .log-ligne.systeme { color: var(--fg-dim); }
+.log-ligne.zhang .log-prefixe, .log-ligne.faux .log-prefixe { color: var(--red); font-weight: 700; }
 
-/* ---------- Date et rappel photo ---------- */
-.jour-date { margin: 0 0 14px; color: var(--fg-dim); font-size: 0.85rem; font-style: italic; }
-.jour-date::first-letter { text-transform: uppercase; }
-.piece-manquante { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin: 0 0 22px; padding: 12px 14px; border-left: 2px solid var(--red); background: var(--feuille); }
-.piece-manquante p { margin: 0; font-size: 0.9rem; color: var(--fg-dim); }
-.piece-manquante .tampon { font-size: 0.66rem; }
-.piece-manquante .bouton { padding: 8px 14px; font-size: 0.85rem; }
-
-/* ---------- Feuille de l'épreuve du jour ---------- */
-.feuille { position: relative; padding: 18px 16px 20px; background: var(--feuille); border: 1px solid var(--line); border-top: 3px solid var(--red); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
-.feuille-ref { display: flex; justify-content: space-between; gap: 10px; margin: 0; color: var(--fg-faint); font-size: 0.78rem; font-variant: small-caps; letter-spacing: 0.05em; }
-.feuille-lieu { margin: 6px 0 0; font-size: 1.35rem; font-weight: 400; line-height: 1.25; }
-.feuille-ville { margin: 2px 0 14px; color: var(--fg-dim); font-style: italic; font-size: 0.9rem; }
-.feuille-retard { margin: 0 0 12px; color: var(--red); font-size: 0.85rem; }
-.feuille-corps { display: flex; flex-direction: column; align-items: stretch; }
-.mission-texte { margin: 0 0 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.mission-role { margin: 4px 0 8px; color: var(--red); font-size: 0.8rem; font-variant: small-caps; letter-spacing: 0.08em; }
-.mission-texte.consigne { padding: 12px 14px; background: var(--feuille-2); border-left: 2px solid var(--fg-dim); }
-.mission-texte.consigne.schema { font: 0.9rem/1.35 var(--machine); overflow-x: auto; overflow-wrap: normal; }
-.feuille.classee { border-top-color: var(--line); }
-.feuille.classee .tampon { position: absolute; right: 16px; bottom: 18px; }
-.classee-lignes { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 0.92rem; }
-.classee-lignes dt { color: var(--fg-faint); }
-.classee-lignes dd { margin: 0; }
-
-/* ---------- Saisie ---------- */
-.code { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-top: 4px; }
-.code-champ {
-  min-width: 0; padding: 10px 2px; border: 0; border-bottom: 1px solid var(--fg); border-radius: 0;
-  background: transparent; color: var(--fg); font: 1.05rem var(--machine); letter-spacing: 0.06em;
-}
-.code-champ::placeholder { color: var(--fg-faint); font-family: var(--texte); font-style: italic; letter-spacing: 0; }
-.code-champ:focus { outline: none; border-bottom-color: var(--red); }
-.code-retour, .joker, .code .passer-test { grid-column: 1 / -1; }
-.code-retour { min-height: 1.4em; margin: 0; color: var(--fg-dim); font-size: 0.85rem; font-style: italic; }
-.code-retour.bon { color: var(--fg); font-style: normal; }
-.code-retour.faux { color: var(--red); }
-.code.refuse .code-champ { animation: refus 0.3s ease 1; }
-@keyframes refus { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-.joker-texte { margin: 0; padding: 10px 12px; border: 1px dashed var(--fg-faint); color: var(--fg-dim); font-size: 0.9rem; }
-
-/* ---------- Verrous à capteur ---------- */
-.verrou { display: flex; flex-direction: column; gap: 12px; }
-.verrou .bouton { align-self: flex-start; }
-.verrou-etat { margin: 0; color: var(--fg-dim); font: 0.85rem var(--machine); }
-.verrou-etat.bon { color: var(--red); }
-.signal { height: 3px; background: var(--line); }
-.signal span { display: block; height: 100%; width: 3%; background: var(--red); transition: width 0.4s; }
-.cadran { position: relative; width: 120px; height: 120px; margin: 4px auto; border: 1px solid var(--fg-dim); border-radius: 50%; }
-.cadran::before { content: ""; position: absolute; top: -1px; left: 50%; width: 2px; height: 12px; margin-left: -1px; background: var(--red); }
-.cadran-aiguille { position: absolute; left: 50%; top: 12px; bottom: 50%; width: 2px; margin-left: -1px; background: var(--fg); transform-origin: 50% 100%; transition: transform 0.2s; }
-
-/* ---------- Synchro ---------- */
-.synchro { display: flex; flex-direction: column; gap: 8px; }
-.synchro-chiffres { font: 700 2.4rem var(--machine); letter-spacing: 0.2em; text-align: center; color: var(--fg); }
-.synchro-jauge { height: 3px; background: var(--line); }
-.synchro-jauge span { display: block; height: 100%; background: var(--red); }
-
-/* ---------- Choix, duel, quiz ---------- */
-.choix, .duel-suite { display: flex; flex-direction: column; gap: 8px; }
-.choix-moi { margin: 0; font-weight: 700; }
-.bouton.choix-option { width: 100%; }
-.recompense { display: flex; flex-direction: column; gap: 4px; }
-.recompense > .tampon { align-self: flex-start; margin: 2px 0 10px; }
-.piece { margin: 0 0 10px; }
-.doc { margin: 6px 0 14px; padding: 12px 14px; background: var(--feuille-2); }
-.doc h3 { margin: 0 0 4px; color: var(--fg-dim); font-size: 0.8rem; font-weight: 400; font-variant: small-caps; letter-spacing: 0.06em; }
-.doc p { margin: 0; font-size: 0.95rem; }
-.note-bureau { margin: 0 0 12px; color: var(--fg-dim); font-size: 0.92rem; }
-.duel { margin-top: 14px; padding: 14px; border: 1px solid var(--line); }
-.duel-titre { margin: 0 0 8px; font-size: 1.02rem; font-weight: 700; }
-.duel .mission-texte { font-size: 0.95rem; }
+/* Duel */
+.duel { width: 100%; margin-top: 8px; padding: 14px; border: 1.5px dashed var(--fg); }
+.duel-titre { margin: 0 0 10px; font-size: 0.8rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); }
 .duel-boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .duel-boutons .bouton:last-child:nth-child(odd) { grid-column: 1 / -1; }
-.duel-resultat { margin: 0 0 4px; font-weight: 700; }
+.duel-resultat { margin: 0 0 8px; font-weight: 700; }
+.duel-suite { display: flex; flex-direction: column; gap: 8px; }
+.duel .synchro-jauge span, .bureau .synchro-jauge span { background: var(--red); }
 
-/* ---------- Notes de service ---------- */
-.log { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 12px; }
-.log-ligne { margin: 0; padding: 8px 12px; background: var(--feuille-2); border-left: 2px solid var(--line); animation: apparait 0.5s ease both; }
-.log-ligne:nth-child(2) { animation-delay: 0.25s; } .log-ligne:nth-child(3) { animation-delay: 0.5s; } .log-ligne:nth-child(4) { animation-delay: 0.75s; } .log-ligne:nth-child(n+5) { animation-delay: 1s; }
-@keyframes apparait { from { opacity: 0; transform: translateY(4px); } }
-@media (prefers-reduced-motion: reduce) { .log-ligne { animation: none; } }
-.log-prefixe { display: block; color: var(--fg-faint); font-size: 0.75rem; font-variant: small-caps; letter-spacing: 0.06em; }
-.log-ligne.zhang, .log-ligne.faux { border-left-color: var(--red); }
-.log-ligne.zhang .log-prefixe, .log-ligne.faux .log-prefixe { color: var(--red); }
-
-/* ---------- Verdict ---------- */
-.verdict { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
-.registre-code strong { color: var(--red); font: 700 1.4rem var(--machine); letter-spacing: 0.2em; }
-.registre-detail summary { cursor: pointer; color: var(--fg-dim); font-size: 0.85rem; }
-.registre-detail ul { margin: 8px 0; padding-left: 1.2em; font-size: 0.88rem; }
-.verdict-annonce { text-align: center; padding: 16px 8px; border: 1px solid var(--line); }
-.verdict-nom { margin: 4px 0; font-size: 1.5rem; color: var(--red); }
-.verdict-score { margin: 0; color: var(--fg-dim); font-size: 0.85rem; }
-.certificat { width: 100%; max-width: 420px; align-self: center; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5); }
+/* Verdict */
+.verdict { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 12px; padding-top: 14px; border-top: 3px double var(--fg); }
+.registre-code strong { color: var(--red); font-size: 1.4rem; letter-spacing: 0.2em; }
+.verdict-annonce { text-align: center; padding: 16px 8px; border: 1.5px solid var(--fg); }
+.verdict-nom { margin: 4px 0; font-size: 1.5rem; font-weight: 700; color: var(--red); }
+.verdict-score { margin: 0; color: var(--fg-dim); font-size: 0.8rem; }
+.certificat { width: 100%; max-width: 420px; align-self: center; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(60, 40, 10, 0.18); }
 .verdict .bouton { align-self: center; }
 
-/* ---------- Entre deux formulaires ---------- */
-.repos { margin-top: 26px; text-align: center; }
-.repos-titre { margin: 0; color: var(--fg-faint); font-size: 0.85rem; font-variant: small-caps; letter-spacing: 0.08em; }
-.repos-lieu { margin: 2px 0 4px; font-size: 1.15rem; }
-.repos-lieu::first-letter { text-transform: uppercase; }
-.repos-compte { margin: 0 0 14px; font: 0.88rem var(--machine); color: var(--fg-dim); }
-.repos .lien-console { font-size: 0.78rem; color: var(--fg-faint); }
+/* Pièces à conviction : photo d'identité en noir et blanc */
+.bureau .photo { border: 1.5px solid var(--fg); background: var(--tirage); padding: 8px 8px 0; }
+.bureau .photo img { filter: grayscale(1) contrast(1.15) sepia(0.15); }
+.bureau .photo::after { content: none; }
+.bureau .dossier-mot { border-color: var(--fg-dim); background: var(--encart); }
+.bureau .cadran { border-color: var(--fg); }
+.bureau .cadran::before { background: var(--red); }
+.bureau .cadran-aiguille { background: var(--fg); }
+.bureau .signal span { background: var(--red); }
+/* Le lien de retour descend en bas de page pour ne pas masquer les formulaires */
+.bureau .retour { position: static; display: block; width: max-content; margin: 0 auto 32px; }
 
-/* ---------- Archives ---------- */
-.archives-titre { margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 1.05rem; font-weight: 400; color: var(--fg-dim); font-variant: small-caps; letter-spacing: 0.06em; }
-.vue-archives > .archives-titre:first-of-type { margin-top: 10px; }
-.pli > summary { cursor: pointer; padding: 10px 0; color: var(--fg-dim); list-style: none; }
-.pli > summary::-webkit-details-marker { display: none; }
-.pli > summary::before { content: "+ "; color: var(--red); }
-.pli[open] > summary::before { content: "− "; }
-.vue-archives > .pli { border-bottom: 1px solid var(--line); margin-top: 14px; }
-.mots { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
-.mot { padding: 2px 10px; border: 1px solid var(--line); font: 0.92rem var(--machine); }
-.historique { border-top: 1px solid var(--line); }
-.histoire { border-bottom: 1px solid var(--line); }
-.histoire > summary { display: grid; grid-template-columns: 2em 1fr auto; gap: 8px; color: var(--fg); }
-.histoire.pli > summary::before, .histoire.pli[open] > summary::before { content: none; }
-.histoire-num, .histoire-date { color: var(--fg-faint); font: 0.82rem var(--machine); align-self: center; }
-.histoire-corps { padding: 2px 0 16px; }
-.histoire .duel { margin-top: 6px; }
-.jeu-pied { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 36px; }
+/* ---------- Fiches de contrôle (douane) ---------- */
+.douane-liste { display: flex; flex-direction: column; gap: 22px; margin-bottom: 8px; }
+.fiche-candidat.douane { padding: 0; background: var(--papier); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
+.fiche-candidat.douane::before { content: "DOUANE"; z-index: 1; }
+.douane-tete { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 14px 14px 10px; border-bottom: 1.5px solid var(--fg); background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(255, 255, 255, 0.035) 6px 7px); }
+.douane-pays { grid-column: 1 / -1; color: var(--fg-dim); font-size: 0.66rem; letter-spacing: 0.18em; }
+.douane-titre { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.douane-numero { color: var(--red); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
+.douane-corps { display: grid; grid-template-columns: 104px 1fr; gap: 14px; padding: 16px 14px 12px; align-items: start; }
+.douane-champs { margin: 0; display: grid; grid-template-columns: 1fr; font-size: 0.8rem; }
+.douane-champs dt { margin-top: 6px; color: var(--fg-faint); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.douane-champs dd { margin: 0; padding: 1px 0 3px; border-bottom: 1px dotted var(--fg-faint); font-family: "Courier New", monospace; color: var(--fg); }
+.douane-champs dt:first-child { margin-top: 0; }
+.douane-avis { position: relative; margin: 0 14px 14px; padding: 10px 12px; border: 1px dashed var(--fg-dim); }
+.douane-avis p { margin: 4px 0 0; font-size: 0.82rem; font-style: italic; color: var(--fg-dim); padding-right: 70px; }
+.douane-avis .tampon { position: absolute; right: 6px; bottom: 8px; font-size: 0.6rem; padding: 2px 6px; transform: rotate(-12deg); }
+.fiche-candidat.douane > .bouton { display: block; width: calc(100% - 28px); margin: 0 14px 14px; }
+@media (max-width: 360px) { .douane-corps { grid-template-columns: 84px 1fr; } }
+
+/* ---------- Photos collées sur le papier ---------- */
+.cliche { position: relative; margin: 14px auto; padding: 8px 8px 10px; background: var(--tirage); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(0, 0, 0, 0.45); transform: rotate(-1.6deg); max-width: 280px; }
+.cliche img { display: block; width: 100%; height: auto; filter: sepia(0.25) contrast(1.05) saturate(0.85); }
+.cliche figcaption { margin-top: 6px; color: var(--encre-tirage); font-size: 0.62rem; letter-spacing: 0.08em; text-align: center; font-style: italic; }
+.cliche:nth-of-type(even) { transform: rotate(1.4deg); }
+.cliche input { display: none; }
+.cliche .lien-console { color: var(--encre-tirage); display: block; margin: 6px auto 0; font-size: 0.66rem; }
+/* Scotch : bande translucide en haut */
+.cliche.scotch::before { content: ""; position: absolute; top: -10px; left: 50%; width: 86px; height: 22px; margin-left: -43px; background: rgba(240, 232, 200, 0.62); border-left: 1px dashed rgba(0, 0, 0, 0.06); border-right: 1px dashed rgba(0, 0, 0, 0.06); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); transform: rotate(-3deg); }
+/* Agrafe : barre métallique et ses deux pattes */
+.cliche.agrafe::before { content: ""; position: absolute; top: 5px; left: 22%; width: 46px; height: 4px; border-radius: 1px; background: linear-gradient(#c9cbcf, #7d8085 60%, #a4a7ab); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); transform: rotate(-7deg); z-index: 2; }
+.cliche.agrafe::after { content: ""; position: absolute; top: 3px; left: calc(22% - 1px); width: 48px; height: 8px; border-left: 2px solid #8d8f93; border-right: 2px solid #8d8f93; transform: rotate(-7deg); opacity: 0.55; z-index: 2; }
+/* Trombone dessiné */
+.cliche.trombone::before { content: ""; position: absolute; top: -18px; right: 22px; width: 16px; height: 50px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 50'%3E%3Cpath d='M11 14V40a5 5 0 0 1-10 0V8a6 6 0 0 1 12 0v30a3 3 0 0 1-6 0V14' fill='none' stroke='%23878a8f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); z-index: 2; }
+/* Photo d'identité de la fiche */
+.cliche.identite { margin: 0; padding: 5px 5px 6px; max-width: none; transform: rotate(-2deg); }
+.cliche.identite img { aspect-ratio: 4 / 5; object-fit: cover; filter: grayscale(1) contrast(1.15); }
+.cliche.identite.vide img { filter: none; }
+/* Archives du lieu, en haut de l'épreuve */
+.cliche.archive { max-width: 300px; }
+.cliche.archive img { aspect-ratio: 300 / 220; }
+.album { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.album .cliche { margin: 10px 0; }
+.souvenir { width: 100%; text-align: center; }
+.souvenir input { display: none; }
+
+/* Rappel de photo d'identité */
+.piece-manquante { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin: 14px 0; padding: 14px; border: 1.5px dashed var(--red); }
+.piece-manquante p { margin: 0; font-size: 0.85rem; color: var(--fg-dim); }
+.piece-manquante input { display: none; }
+.bureau .dossier-mot { color: var(--fg); }
+
+/* Textes codés en clair pour le site sombre dans jeu.css : ils suivent l'encre de l'épisode */
+.bureau .progression-compte, .bureau .synchro-chiffres, .bureau .code-champ, .bureau .compteur-nombre { color: var(--fg); }
+.bureau .cadran-aiguille { background: var(--fg); }
+.bureau .rappel > summary:hover .rappel-titre, .bureau .bouton.role:hover, .bureau .bouton.choix-option:hover { color: var(--fg); }
+
+/* ---------- Menu en onglets ---------- */
+.bureau.avec-onglets { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+.bureau.avec-onglets .fiche-tete { display: none; } /* le titre ne sert qu'au choix du dossier */
+.bureau.avec-onglets .fiche.jeu { padding-top: 6px; }
+.bureau .barre { position: sticky; top: 0; z-index: 5; }
+.bureau .barre .point { min-width: 0; }
+.bureau .barre-score { flex: none; color: var(--fg); font-weight: 700; letter-spacing: 0.08em; }
+.onglets { display: none; }
+.avec-onglets .onglets {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  padding: 0 0 env(safe-area-inset-bottom);
+  background: #0f0e0c; border-top: 1px solid var(--line);
+}
+.onglets .onglet {
+  position: relative; min-height: 56px; padding: 0 4px; border: 0; background: none;
+  color: var(--fg-faint); font: 0.66rem var(--mono); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+}
+.onglets .onglet.actif { color: var(--fg); }
+.onglets .onglet.actif::before { content: ""; position: absolute; top: -1px; left: 22%; right: 22%; height: 2px; background: var(--red); }
+.bureau .vue { padding-top: 14px; }
+.jour-date { margin: 0 0 12px; color: var(--fg-dim); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.jour-date::first-letter { text-transform: uppercase; }
+.repos { text-align: center; color: var(--fg-dim); font-size: 0.85rem; }
+.repos .cliche { max-width: 170px; }
+.vue-jour .progression-prochain { margin-top: 18px; text-align: center; }
+.bureau .retour { margin-bottom: 24px; }
 
 /* ---------- Carte ---------- */
-.carte-chine { margin: 0 0 10px; }
-.carte-chine svg { display: block; width: 100%; height: auto; background: #110f0d; border: 1px solid var(--line); }
-.carte-chine figcaption { margin-top: 6px; color: var(--fg-faint); font-size: 0.78rem; font-style: italic; text-align: center; }
-.carte-grille { fill: none; stroke: rgba(212, 204, 187, 0.05); stroke-width: 1; }
-.carte-voisins { fill: #181614; stroke: #2c2924; stroke-width: 1; }
-.carte-terre { fill: #221f1b; stroke: #8a816f; stroke-width: 1.6; stroke-linejoin: round; }
-.carte-pays { fill: rgba(212, 204, 187, 0.07); font: 700 120px var(--machine); letter-spacing: 30px; }
+.carte-chine { margin: 0 -8px 18px; }
+.carte-chine svg { display: block; width: 100%; height: auto; background: #12110f; border: 1px solid var(--line); }
+.carte-chine figcaption { margin-top: 6px; color: var(--fg-faint); font-size: 0.62rem; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; }
+.carte-grille { fill: none; stroke: rgba(214, 207, 192, 0.05); stroke-width: 1; }
+.carte-voisins { fill: #191816; stroke: #2e2b26; stroke-width: 1; }
+.carte-terre { fill: #23201c; stroke: #8a816f; stroke-width: 1.6; stroke-linejoin: round; }
+.carte-pays { fill: rgba(214, 207, 192, 0.07); font: 700 120px var(--mono); letter-spacing: 30px; }
 .carte-trace { fill: none; stroke: var(--red); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 12; }
 .carte-trace.via-tgv, .carte-trace.via-route { stroke-dasharray: 10 8; stroke-width: 3; }
 .carte-trace.nouveau { stroke-dasharray: var(--longueur); stroke-dashoffset: var(--longueur); animation: trace 2.4s ease-out 0.3s forwards; }
 @keyframes trace { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .carte-trace.nouveau { animation: none; stroke-dashoffset: 0; } }
-.carte-ville { fill: #110f0d; stroke: var(--fg); stroke-width: 3; }
-.carte-ville.ici { fill: var(--red); }
-.carte-nom { fill: var(--fg); font: 28px var(--texte); paint-order: stroke; stroke: #110f0d; stroke-width: 6px; }
+.carte-ville { fill: #12110f; stroke: var(--fg); stroke-width: 3; }
+.carte-ville.ici { fill: var(--red); stroke: var(--fg); animation: pouls 2s ease-in-out infinite; }
+@keyframes pouls { 50% { stroke-width: 7; } }
+.carte-nom { fill: var(--fg); font: 700 28px var(--mono); paint-order: stroke; stroke: #12110f; stroke-width: 6px; }
+.acte-tete { margin-top: 18px; }
+.acte-tete .acte { margin-top: 4px; }
+.skyline { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; opacity: 0.85; }
+.archive-carte { max-width: 320px; margin-top: 28px; }
 
-/* ---------- Photos collées sur le papier ---------- */
-.cliche { position: relative; margin: 14px auto; padding: 7px 7px 9px; background: var(--tirage); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(0, 0, 0, 0.45); transform: rotate(-1.4deg); max-width: 280px; }
-.cliche img { display: block; width: 100%; height: auto; filter: sepia(0.25) contrast(1.05) saturate(0.85); }
-.cliche figcaption { margin-top: 6px; color: var(--encre-pale); font-size: 0.75rem; font-style: italic; text-align: center; }
-.cliche.scotch::before { content: ""; position: absolute; top: -10px; left: 50%; width: 86px; height: 22px; margin-left: -43px; background: rgba(240, 232, 200, 0.6); transform: rotate(-3deg); }
-.cliche.agrafe::before { content: ""; position: absolute; top: 5px; left: 22%; width: 46px; height: 4px; border-radius: 1px; background: linear-gradient(#c9cbcf, #7d8085 60%, #a4a7ab); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); transform: rotate(-7deg); z-index: 2; }
-.cliche.trombone::before { content: ""; position: absolute; top: -18px; right: 22px; width: 16px; height: 50px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 50'%3E%3Cpath d='M11 14V40a5 5 0 0 1-10 0V8a6 6 0 0 1 12 0v30a3 3 0 0 1-6 0V14' fill='none' stroke='%23878a8f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain; z-index: 2; }
-.cliche.identite { padding: 4px 4px 5px; transform: rotate(-2deg); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35); }
-.cliche.identite img { aspect-ratio: 35 / 45; object-fit: cover; filter: grayscale(1) contrast(1.15); }
-.cliche.identite.agrafe::before { top: 3px; left: 18%; width: 34px; }
-/* Image du lieu, en bandeau en haut de la feuille */
-.cliche.archive { max-width: none; margin: 0 0 14px; padding: 4px; transform: none; box-shadow: none; }
-.cliche.archive::before { content: none; }
+/* ---------- Fiche évolutive ---------- */
+.douane-champs dt.evolutif { color: var(--red); }
+.douane-champs dd.evolutif { font-weight: 700; }
+.douane-visas { margin: 0 14px 14px; padding: 10px 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.15); }
+.visas-page { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+.visa {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 64px;
+  border: 2px solid currentColor; border-radius: 6px; transform: rotate(var(--angle, -4deg)); opacity: 0.85;
+  font-size: 0.55rem; letter-spacing: 0.08em; text-align: center; line-height: 1.2;
+}
+.visa strong { font-size: 1rem; letter-spacing: 0.1em; }
+.visa small { font-size: 0.5rem; }
+.visa.rouge { color: #c94a3c; } .visa.bleu { color: #6f8fc9; } .visa.violet { color: #a07ac0; } .visa.vert { color: #6fa585; }
+.visa:nth-child(even) { border-radius: 50%; }
+.visa.vide { border: 1px dashed var(--line); transform: none; opacity: 1; }
+.douane-notes { margin: 10px 0 18px; padding: 0; list-style: none; font-size: 0.8rem; }
+.douane-notes li { display: grid; grid-template-columns: 3.4em 1fr; gap: 8px; padding: 5px 0; border-top: 1px dotted var(--line); color: var(--fg); }
+.note-date { color: var(--fg-faint); font-size: 0.7rem; }
+
+/* ---------- Registre ---------- */
+.registre-duels { margin-top: 20px; }
+.registre-liste { margin: 8px 0 18px; padding: 0; list-style: none; }
+.registre-liste li { border-bottom: 1px solid var(--line); }
+.registre-lien { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 8px; width: 100%; padding: 10px 2px; border: 0; background: none; color: var(--fg); font: 0.82rem var(--mono); text-align: left; cursor: pointer; }
+.registre-liste li.futur .registre-lien { color: var(--fg-faint); }
+.registre-gagnant { color: var(--red); font-weight: 700; white-space: nowrap; }
+.registre-liste li.futur .registre-gagnant { color: var(--fg-faint); font-weight: 400; }
+
+/* ---------- Allègement (3 nov.) : texte courant en serif, monospace pour les repères ---------- */
+body.bureau { --texte: Georgia, "Times New Roman", "Noto Serif", serif; font: 16px/1.55 var(--texte); letter-spacing: normal; }
+.bureau .barre, .bureau .onglet, .bureau .eyebrow, .bureau .rappel-num, .bureau .mission-etat, .bureau .tampon,
+.bureau .douane-numero, .bureau .douane-pays, .bureau .douane-titre, .bureau .code-champ, .bureau .bouton, .bureau .lien-console,
+.bureau .progression-compte, .bureau .registre-points, .bureau .visa, .bureau .jour-date, .bureau .douane-champs dt,
+.bureau .acte, .bureau .synchro-chiffres, .bureau .note-date, .bureau .registre-gagnant, .bureau .bandeau-test,
+.bureau .progression-prochain, .bureau .mission-lieu, .bureau .cliche figcaption, .bureau .carte-chine figcaption { font-family: var(--mono); }
+.bureau .douane-champs dd { font-family: var(--texte); }
+.bureau .log-ligne { font-family: var(--texte); }
+.bureau .log-prefixe { font-family: var(--mono); font-size: 0.75em; }
+
+/* Barre et bandeau test : une ligne chacun */
+.bureau.avec-onglets .barre { padding: 10px 16px; }
+.bureau .barre-score { font-size: 0.78rem; }
+.bureau .bandeau-test { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; padding: 6px 16px; font-size: 0.66rem; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.bureau .bandeau-test::-webkit-scrollbar { display: none; }
+
+/* Un seul niveau de cadre */
+.bureau .acte { border-bottom: 1px solid var(--line); color: var(--fg-dim); font-weight: 400; font-size: 0.66rem; margin-top: 22px; }
+.bureau .rappel > summary { border-color: var(--line); }
+.bureau .mission > summary { font-family: var(--texte); font-size: 1.02rem; letter-spacing: 0; padding: 14px 2px; }
+.bureau .mission-texte { line-height: 1.55; }
+.bureau .mission-texte.consigne { border-left: 2px solid var(--red); background: var(--encart); padding: 10px 14px; }
+.bureau .mission-role { display: block; padding: 0; border: 0; color: var(--fg-faint); font: 0.62rem var(--mono); letter-spacing: 0.14em; margin: 0 0 8px; }
+.bureau .registre { border: 1px solid var(--line); }
+.bureau .duel { border: 1px solid var(--line); }
+.bureau .verdict { border-top: 1px solid var(--line); }
+.bureau .douane-avis { border: 0; border-top: 1px solid var(--line); margin: 0 14px; padding: 12px 0 16px; }
+.bureau .douane-avis .tampon { right: 0; }
+.bureau .douane-visas { border: 0; background: none; padding: 4px 0 12px; }
+.bureau .piece-manquante { border: 1px solid var(--line); border-left: 2px solid var(--red); }
+.fiche-candidat.douane::before { content: none; }
+.bureau .douane-tete { background: none; border-bottom: 1px solid var(--line); }
+.bureau .fiche-candidat { border: 1px solid var(--line); }
+
+/* Épreuve : la photo devient un bandeau fin */
+.cliche.archive { max-width: none; margin: 4px 0 14px; padding: 4px; transform: none; box-shadow: none; }
+.cliche.archive::before, .cliche.archive::after { content: none; }
 .cliche.archive img { aspect-ratio: 3 / 1; object-fit: cover; }
-.album { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
-.album .cliche { margin: 10px 0; }
-.album .cliche:nth-child(even) { transform: rotate(1.3deg); }
-.souvenir { text-align: center; margin-top: 8px; }
-.souvenir input, .piece-manquante input, .fd-photo input { display: none; }
+
+/* Fiche compacte : ce qui ne bouge pas est replié */
+.douane-nom { font-weight: 700; }
+.douane-plus { margin: 0 14px 10px; }
+.douane-plus > summary, .fiche-autre > summary { cursor: pointer; color: var(--fg-dim); font: 0.68rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 0; list-style: none; }
+.douane-plus > summary::before, .fiche-autre > summary::before { content: "+ "; color: var(--red); }
+.douane-plus[open] > summary::before, .fiche-autre[open] > summary::before { content: "− "; }
+.douane-plus > summary::-webkit-details-marker, .fiche-autre > summary::-webkit-details-marker { display: none; }
+.douane-plus .douane-champs { padding: 4px 0 8px; }
+.douane-avis .douane-plus { margin: 4px 0 0; }
+.fiche-autre { padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.fiche-autre .douane { margin-top: 10px; }
+.douane-corps { padding-bottom: 6px; }
+.vue-dossier .douane-liste { gap: 14px; }
+.bureau .douane-tete { padding: 10px 14px 8px; }
+.bureau .douane-titre { font-size: 0.66rem; }
+.bureau .douane-pays { font-size: 0.6rem; }
+.bureau .visas-page { gap: 8px; }
+.bureau .visa { min-height: 48px; font-size: 0.5rem; }
+.bureau .visa strong { font-size: 0.85rem; }
+.bureau .vue-jour .mission > summary { border-top: 1px solid var(--line); }
+.bureau .vue-jour .mission-lieu { display: none; } /* la date est déjà en tête de l'onglet */
+.bureau .jour-date { margin-bottom: 4px; }
+.bureau .registre-titre { font-family: var(--texte); font-size: 0.98rem; }
+.bureau .skyline { max-height: 56px; width: auto; max-width: 100%; margin: 0; opacity: 0.7; }
+.bureau .acte-tete { margin-top: 26px; }
+.bureau .mission-texte.consigne.schema { font-family: var(--mono); font-size: 0.9rem; line-height: 1.35; overflow-x: auto; overflow-wrap: normal; }
