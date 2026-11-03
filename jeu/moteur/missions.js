@@ -688,7 +688,9 @@
       return;
     }
 
-    corps.appendChild(el('p', 'mission-texte consigne', lire(m[etat.role])));
+    const consigne = lire(m[etat.role]);
+    // Schémas en caractères de dessin (symboles, tables) : police à chasse fixe pour garder l'alignement
+    corps.appendChild(el('p', `mission-texte consigne${/[━─│┃]/.test(consigne) ? ' schema' : ''}`, consigne));
     if (m.faux && m.fauxPour === etat.role && !etat.valides[m.id]) corps.appendChild(journalUnique(messages(m.faux), `faux-${m.id}`).log);
 
     if (etat.valides[m.id]) return corps.appendChild(recompense(m));
