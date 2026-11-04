@@ -97,6 +97,13 @@
   const barreRole = el('span');
   barre.append(el('span', 'point', T.barre), barreRole);
   document.body.insertBefore(barre, racine);
+  // Zone qui défile entre la barre du haut et les onglets du bas : les deux barres restent fixes,
+  // même quand Safari fait rebondir la page
+  const defile = el('div', 'defile');
+  document.body.insertBefore(defile, racine);
+  defile.appendChild(racine);
+  const lienRetour = document.querySelector('.retour');
+  if (lienRetour) defile.appendChild(lienRetour);
 
   const tete = el('div', 'fiche-tete');
   const titre = el('h1', 'glitch', ep.titre);
@@ -120,7 +127,7 @@
     const quitter = el('a', 'quitter', 'quitter');
     quitter.href = location.pathname;
     bandeau.appendChild(quitter);
-    document.body.insertBefore(bandeau, racine);
+    defile.insertBefore(bandeau, racine);
   }
 
   // ---------- Onglets : Aujourd'hui · Carte · Dossier · Registre ----------
@@ -137,7 +144,7 @@
     try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-onglet`, id); } catch { /* private mode */ }
     if (missionId) ouverts.add(missionId);
     afficher();
-    window.scrollTo(0, 0);
+    defile.scrollTop = 0;
     if (missionId) {
       const cible = zone.querySelector(`.mission[data-id="${missionId}"]`);
       if (cible) cible.scrollIntoView({ block: 'start' });
@@ -152,7 +159,7 @@
     barre.firstChild.textContent = etat.role ? `EP${ep.numero}` : T.barre;
     document.body.classList.toggle('avec-onglets', !!etat.role);
     nav.textContent = '';
-    if (!etat.role) return choixRole();
+    if (!etat.role) { choixRole(); return caler(); }
     ONGLETS.forEach(([id, libelle]) => {
       const b = bouton(`onglet${id === onglet ? ' actif' : ''}`, libelle, () => changerOnglet(id));
       b.dataset.onglet = id;
@@ -161,7 +168,13 @@
     });
     const vues = { jour: vueJour, carte: vueCarte, dossier: vueDossier, registre: vueRegistre };
     zone.appendChild((vues[onglet] || vueJour)());
+    caler();
   }
+  function caler() {
+    defile.style.top = `${barre.offsetHeight}px`;
+    defile.style.bottom = `${etat.role ? nav.offsetHeight : 0}px`;
+  }
+  window.addEventListener('resize', caler);
 
   // Aujourd'hui : une carte claire pour l'épreuve du jour, ses étapes, puis la suivante
   function vueJour() {
@@ -366,7 +379,7 @@
         onglet = 'registre'; // première ouverture : le récit d'abord
         try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-onglet`, onglet); } catch { /* private mode */ }
         afficher();
-        window.scrollTo(0, 0);
+        defile.scrollTop = 0;
       }));
       choix.appendChild(carte);
     });
@@ -656,9 +669,9 @@
   // Nouveau rendu de l'onglet en gardant la position et l'épreuve dépliée
   function rafraichir(m) {
     ouverts.add(m.id);
-    const y = window.scrollY;
+    const y = defile.scrollTop;
     afficher();
-    window.scrollTo(0, y);
+    defile.scrollTop = y;
   }
 
   function remplir(m, corps) {
