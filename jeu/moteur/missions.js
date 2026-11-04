@@ -70,13 +70,13 @@
   const parametres = new URLSearchParams(location.search);
   const test = parametres.has('test');
   const CLE_SAUVEGARDE = test ? `locost-${ep.id}-test` : `locost-${ep.id}`;
-  const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, portraits: {}, lus: {}, duels: {}, quiz: {}, verdict: {}, chat: chatVide() });
+  const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, portraits: {}, lus: {}, duels: {}, quiz: {}, verdict: {}, info: {}, chinglish: [], chat: chatVide() });
   const chatVide = () => ({ v: 2, fil: [], recus: {}, lu: 0, vus: {} });
   let etat;
   try { etat = { ...vide(), ...JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) || '{}') }; } catch { etat = vide(); }
   if (!etat.chat || etat.chat.v !== 2) etat.chat = chatVide(); // older thread format: rebuilt from the progress
   function sauver() {
-    try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify(etat)); } catch { /* quota or private mode: the game still works for this visit */ }
+    try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify(etat)); return true; } catch { return false; /* quota or private mode: the game still works for this visit */ }
   }
 
   // ---------- Date du jour, heure de l'épisode (Pékin) ----------
@@ -87,8 +87,14 @@
   const aujourdhui = () => dateForcee || new Date(Date.now() + decalage).toISOString().slice(0, 10);
   const debutJour = (date) => Date.parse(`${date}T00:00:00Z`) - decalage;
   const dateCourte = (date) => `${date.slice(8, 10)}.${date.slice(5, 7)}`;
-  const ouverte = (m) => !m.date || m.date <= aujourdhui() || etat.forces[m.id];
-  const numero = (m) => m.id.replace(/\D/g, '');
+  // Épreuve du soir (offre privée, interrogatoire) : s'ouvre seulement une fois l'épreuve du jour terminée
+  const parent = (m) => (m.apresDe ? ep.missions.find((x) => x.id === m.apresDe) : null);
+  const ouverte = (m) => {
+    const p = parent(m);
+    if (p) return ouverte(p) && terminee(p);
+    return !m.date || m.date <= aujourdhui() || etat.forces[m.id];
+  };
+  const numero = (m) => `${m.id.replace(/\D/g, '')}${m.soir ? ' bis' : ''}`;
   const autreRole = (role) => ROLES.find((r) => r !== role);
   const nom = (role) => lire(ep.roles[role].nom);
   const surnom = (role) => lire(ep.roles[role].surnom) || nom(role);
@@ -235,12 +241,12 @@
     const titre = el('header', 'carte-jour-tete');
     const retard = m.date && m.date < date;
     titre.append(
-      el('p', 'carte-jour-sur', retard ? `En retard · ${dateCourte(m.date)}` : m.date ? 'Épreuve du jour' : 'Avant d’embarquer'),
+      el('p', 'carte-jour-sur', m.soir ? `Ce soir · en privé${retard ? ` · ${dateCourte(m.date)}` : ''}` : retard ? `En retard · ${dateCourte(m.date)}` : m.date ? 'Épreuve du jour' : 'Avant d’embarquer'),
       el('h2', 'carte-jour-titre', `${numero(m)} · ${m.lieu}`),
       el('p', 'carte-jour-ville', m.ville),
     );
     carteJour.appendChild(titre);
-    const etapesJour = [['Formulaire', true], ...(m.duel ? [['Duel', true]] : []), ...(m.verdict ? [['Verdict', true]] : [])];
+    const etapesJour = [[m.type === 'informateur' ? 'Interrogatoire' : m.soir ? 'Décision' : 'Formulaire', true], ...(m.duel ? [['Duel', true]] : []), ...(m.verdict ? [['Verdict', true]] : [])];
     const faite = (i) => (i === 0 ? !!etat.valides[m.id] : etapesJour[i][0] === 'Duel' ? !!etat.duels[m.id] : !!etat.verdict.rendu);
     const courante = etapesJour.findIndex((_, i) => !faite(i));
     const fil = el('ol', 'etapes-jour');
@@ -362,7 +368,7 @@
     const liste = el('div', 'rappels missions');
     ouvertes.forEach((m) => liste.appendChild(mission(m)));
     tableau.appendChild(liste);
-    const reste = ep.missions.length - ouvertes.length;
+    const reste = ep.missions.filter((m) => !m.soir && !ouverte(m)).length; // evening offers stay a surprise
     if (reste) tableau.appendChild(el('p', 'note registre-reste', `${reste} épreuve${reste > 1 ? 's' : ''} encore scellée${reste > 1 ? 's' : ''} par le Bureau.`));
     vue.append(tableau, pied());
     return vue;
@@ -416,7 +422,7 @@
     return `${surnom(g)} mène ${s[g]} à ${s[autreRole(g)]}`;
   }
   function prochaine() {
-    const m = ep.missions.find((x) => !terminee(x));
+    const m = ep.missions.find((x) => !x.soir && !terminee(x));
     if (!m) return 'aucune, le Bureau en a fini avec vous';
     return `épreuve ${numero(m)}, ${m.lieu}${m.date ? `, le ${dateCourte(m.date)}` : ', avant d’embarquer'}`;
   }
@@ -444,14 +450,21 @@
     const avis = (texte) => ({ qui: 'systeme', texte });
     const aFaire = (m) => avis(`Formulaire du jour : ${numero(m)} · ${m.lieu}.`);
     const suites = (m) => {
-      if (etat.valides[m.id]) recevoir(`apres-${m.id}`, [avis(`Formulaire ${numero(m)} validé.${m.duel ? ' Duel à disputer.' : ''}`), ...pourMoi(m.apres)]);
+      if (m.soir && ouverte(m)) {
+        const quoi = m.type === 'informateur' ? 'Interrogatoire du soir' : 'Offre privée du soir';
+        recevoir(`soir-${m.id}`, [avis(`${quoi} : ${numero(m)} · ${m.lieu}.`), ...pourMoi(m.invitation)], 'jour');
+      }
+      if (etat.valides[m.id]) recevoir(`apres-${m.id}`, [avis(m.soir ? `${numero(m)} · ${m.lieu} : classé.` : `Formulaire ${numero(m)} validé.${m.duel ? ' Duel à disputer.' : ''}`), ...pourMoi(m.apres)]);
       const g = etat.duels[m.id];
       if (g) {
         const extra = g === 'egal' ? {} : { gagnant: surnom(g), perdant: surnom(autreRole(g)) };
         const texte = remplacer(tirer((g === 'egal' ? bavard.egalite : bavard.victoire).map(lire), 'duel'), extra);
         recevoir(`duel-${m.id}-${g}`, [avis(`Duel ${numero(m)} · ${lire(m.duel.titre)} : ${g === 'egal' ? 'égalité' : `point pour ${surnom(g)}`}.`), { qui: 'zhang', texte }]);
       }
-      if (m.verdict && etat.verdict.rendu) recevoir('verdict', pourMoi(bavard.verdict));
+      if (m.verdict && etat.verdict.rendu) {
+        recevoir('verdict', pourMoi(bavard.verdict));
+        recevoir('fin', finMessages(m.verdict));
+      }
     };
     const sansDate = ep.missions.filter((m) => !m.date);
     recevoir('intro', [...messages(ep.transmission), ...sansDate.filter((m) => !terminee(m)).map(aFaire)], 'jour');
@@ -463,8 +476,13 @@
       const lieux = (bavard.lieuxJour && bavard.lieuxJour[d] && lire(bavard.lieuxJour[d])) || [...new Set(duJour.map((m) => m.ville))].join(', ');
       const n = Math.round((Date.parse(d) - Date.parse(premier)) / 86400000) + 1;
       const separateur = { qui: 'jour', texte: `${libelleDate(d)}\n${lieux} · jour ${n} sur ${jours.length}` };
-      const ouverts = duJour.filter((m) => !terminee(m));
-      recevoir(`matin-${d}`, [separateur, ...pourMoi(bavard.matin && bavard.matin[d]), ...ouverts.map(aFaire)], ouverts.length ? 'jour' : null);
+      const ouverts = duJour.filter((m) => !m.soir && !terminee(m));
+      // Informateur : avis aux deux candidats, mission confidentielle sur le seul téléphone de l'informateur
+      const indics = duJour.filter((m) => m.type === 'informateur').flatMap((m) => [
+        ...pourMoi(m.matin),
+        ...(m.informateurs || []).filter((i) => lire(i.role) === etat.role).flatMap((i) => messages(i.messages)),
+      ]);
+      recevoir(`matin-${d}`, [separateur, ...pourMoi(bavard.matin && bavard.matin[d]), ...indics, ...ouverts.map(aFaire)], ouverts.length ? 'jour' : null);
       duJour.forEach(suites);
     });
     ep.missions.filter((m) => m.date && m.date > date).forEach(suites); // opened early
@@ -737,10 +755,10 @@
     return cadre;
   }
   const MANIERES = ['scotch', 'agrafe', 'trombone'];
-  const maniere = (m) => MANIERES[Number(numero(m)) % MANIERES.length];
+  const maniere = (m) => MANIERES[Number(m.id.replace(/\D/g, '')) % MANIERES.length];
 
   // Champ photo caché (appareil du téléphone), réduit pour tenir dans la sauvegarde
-  function champPhoto(camera, quandPrete) {
+  function champPhoto(camera, quandPrete, cote = 640) {
     const fichier = el('input');
     Object.assign(fichier, { type: 'file', accept: 'image/*', hidden: true });
     fichier.setAttribute('capture', camera);
@@ -748,7 +766,7 @@
       const image = fichier.files && fichier.files[0];
       if (!image) return;
       try {
-        await quandPrete(await reduire(image, 640));
+        await quandPrete(await reduire(image, cote));
       } catch {
         window.alert('Photo illisible, recommence.');
       }
@@ -807,6 +825,10 @@
           total[autreRole(etat.role)] += issue.autre || 0;
         }
       }
+      if (m.type === 'informateur') {
+        const p = pointsInfo(m);
+        ROLES.forEach((r) => { total[r] += p[r]; });
+      }
     });
     if (etat.verdict.departage) total[etat.verdict.departage] += 1;
     return total;
@@ -819,6 +841,12 @@
         const parRole = { [etat.role]: c.moi, [autreRole(etat.role)]: c.autre };
         return ROLES.map((r) => (parRole[r] == null ? '-' : parRole[r])).join('');
       }
+      if (m.type === 'informateur') {
+        const acc = accusations(m);
+        const reussi = (etat.info[m.id] || {}).reussi || {};
+        const bit = (v) => (v == null ? '-' : v ? '1' : '0');
+        return ROLES.map((r) => bit(acc[r])).join('') + ROLES.map((r) => bit(reussi[r])).join('');
+      }
       const g = etat.duels[m.id];
       return g ? String(g === 'egal' ? 0 : ROLES.indexOf(g) + 1) : '-';
     });
@@ -826,7 +854,7 @@
   }
 
   // ---------- Progression ----------
-  const jouables = ep.missions.filter((m) => m.date);
+  const jouables = ep.missions.filter((m) => m.date && !m.soir);
   function progression() {
     const total = jouables.length;
     const faits = jouables.filter((m) => etat.valides[m.id]).length;
@@ -906,7 +934,7 @@
     if (m.image) corps.appendChild(cliche(`${images}${m.image}`, lire(m.legende), 'archive agrafe'));
     corps.appendChild(el('p', 'mission-texte', lire(m.commun)));
     const terrain = m.terrain === 'deux' || m.terrain === etat.role;
-    corps.appendChild(el('p', 'mission-role', m.terrain === 'deux' ? T.deux : terrain ? T.terrain : T.cle));
+    corps.appendChild(el('p', 'mission-role', m.type === 'informateur' ? 'À remplir ensemble, au dîner' : m.soir ? 'En privé · ne montre pas ton écran' : m.terrain === 'deux' ? T.deux : terrain ? T.terrain : T.cle));
 
     // Verrou (capteur) : seul l'agent de terrain doit le lever
     if (m.verrou && terrain && !etat.verrous[m.id] && !etat.valides[m.id]) {
@@ -916,12 +944,13 @@
 
     const consigne = lire(m[etat.role]);
     // Schémas en caractères de dessin (symboles, tables) : police à chasse fixe pour garder l'alignement
-    corps.appendChild(el('p', `mission-texte consigne${/[━─│┃]/.test(consigne) ? ' schema' : ''}`, consigne));
+    if (consigne) corps.appendChild(el('p', `mission-texte consigne${/[━─│┃]/.test(consigne) ? ' schema' : ''}`, consigne));
     if (m.faux && m.fauxPour === etat.role && !etat.valides[m.id]) corps.appendChild(journalUnique(messages(m.faux), `faux-${m.id}`).log);
 
     if (etat.valides[m.id]) return corps.appendChild(recompense(m));
     if (m.type === 'synchro') return corps.appendChild(synchro(m));
     if (m.type === 'choix') return corps.appendChild(choix(m));
+    if (m.type === 'informateur') return corps.appendChild(interrogatoire(m));
     corps.appendChild(formulaire(m));
   }
 
@@ -1065,6 +1094,88 @@
     return bloc;
   }
 
+  // ---------- Interrogatoire du soir : qui était l'informateur ? ----------
+  // Chacun accuse ou non en secret, puis on se dit ses accusations, le téléphone révèle les informateurs
+  // et l'on déclare si chaque informateur non démasqué a réussi sa mission. Démasquer un informateur : +1 ;
+  // accuser à tort : -1 ; informateur non démasqué qui a réussi : +1.
+  const informateursDe = (m) => (m.informateurs || []).map((i) => ({ role: lire(i.role), mission: lire(i.mission) }));
+  function accusations(m) {
+    const c = etat.info[m.id] || {};
+    return { [etat.role]: c.moi, [autreRole(etat.role)]: c.autre };
+  }
+  function pointsInfo(m) {
+    const total = Object.fromEntries(ROLES.map((r) => [r, 0]));
+    const c = etat.info[m.id];
+    if (!c || !etat.valides[m.id]) return total;
+    const acc = accusations(m);
+    const indics = informateursDe(m).map((i) => i.role);
+    ROLES.forEach((r) => {
+      const o = autreRole(r);
+      if (acc[r]) total[r] += indics.includes(o) ? 1 : -1;
+      if (indics.includes(r) && !acc[o] && (c.reussi || {})[r]) total[r] += 1;
+    });
+    return total;
+  }
+  function interrogatoire(m) {
+    const bloc = el('div', 'choix interrogatoire');
+    const memoire = etat.info[m.id] || { reussi: {} };
+    const garder = () => { etat.info[m.id] = memoire; sauver(); };
+    const autre = surnom(autreRole(etat.role));
+    function etape() {
+      bloc.textContent = '';
+      if (memoire.moi == null) {
+        bloc.appendChild(el('p', 'eyebrow', 'Ton accusation, seul'));
+        [[`Accuser ${autre}`, true], ['Ne pas accuser', false]].forEach(([texte, valeur]) => bloc.appendChild(bouton('bouton choix-option', texte, () => {
+          if (!window.confirm(`Décision définitive : « ${texte} » ?`)) return;
+          memoire.moi = valeur;
+          garder();
+          etape();
+        })));
+        return;
+      }
+      bloc.appendChild(el('p', 'choix-moi', memoire.moi ? `Tu accuses ${autre}.` : 'Tu n’accuses personne.'));
+      if (memoire.autre == null) {
+        bloc.appendChild(el('p', 'eyebrow', `Dites-vous vos accusations. ${autre} :`));
+        [['M’accuse', true], ['Ne m’accuse pas', false]].forEach(([texte, valeur]) => bloc.appendChild(bouton('bouton choix-option', texte, () => {
+          memoire.autre = valeur;
+          garder();
+          etape();
+        })));
+        return;
+      }
+      bloc.appendChild(el('p', 'choix-moi', memoire.autre ? `${autre} t’accuse.` : `${autre} ne t’accuse pas.`));
+      const acc = accusations(m);
+      const indics = informateursDe(m);
+      const revelation = el('div', 'doc revelation');
+      revelation.appendChild(el('h3', null, 'Révélation du Bureau'));
+      if (!indics.length) revelation.appendChild(el('p', null, 'Aucun informateur aujourd’hui. Le Bureau voulait seulement voir si vous vous faisiez confiance.'));
+      indics.forEach((i) => revelation.appendChild(el('p', null, `Informateur : ${surnom(i.role)}. Mission : ${i.mission}`)));
+      bloc.appendChild(revelation);
+      // Mission réussie ? seulement pour l'informateur que l'autre n'a pas démasqué
+      const aJuger = indics.filter((i) => !acc[autreRole(i.role)]);
+      const restant = aJuger.find((i) => memoire.reussi[i.role] == null);
+      if (restant) {
+        bloc.appendChild(el('p', 'eyebrow', `Mission de ${surnom(restant.role)}, non démasqué : accomplie ?`));
+        [['Accomplie', true], ['Ratée', false]].forEach(([texte, valeur]) => bloc.appendChild(bouton('bouton choix-option', texte, () => {
+          memoire.reussi[restant.role] = valeur;
+          garder();
+          etape();
+        })));
+        return;
+      }
+      if (!etat.valides[m.id]) {
+        etat.valides[m.id] = true;
+        garder();
+        return rafraichir(m);
+      }
+      const p = pointsInfo(m);
+      const bilan = ROLES.map((r) => `${surnom(r)} ${p[r] > 0 ? '+' : ''}${p[r]}`).join(' · ');
+      bloc.appendChild(el('p', 'duel-resultat', `Bilan de l’interrogatoire : ${bilan}`));
+    }
+    etape();
+    return bloc;
+  }
+
   // ---------- Duel : un vainqueur, déclaré sur les deux téléphones ----------
   function duel(m) {
     const d = m.duel;
@@ -1153,6 +1264,7 @@
     const bloc = el('div', 'recompense');
     bloc.appendChild(el('span', 'tampon valide', T.valide));
     if (m.type === 'choix') bloc.appendChild(choix(m));
+    if (m.type === 'informateur') bloc.appendChild(interrogatoire(m));
     if (m.piece) {
       const mot = el('p', 'piece');
       mot.append(`${T.piece} : `, el('strong', null, `« ${lire(m.piece)} »`));
@@ -1164,7 +1276,7 @@
       doc.append(el('h3', null, T.note), el('p', null, lire(m.dossier)));
       bloc.appendChild(doc);
     }
-    bloc.appendChild(souvenir(m));
+    if (!m.soir) bloc.appendChild(souvenir(m));
     const suite = [...messages(m.apres && m.apres.commun), ...messages(m.apres && m.apres[etat.role])];
     if (suite.length) {
       const { log, jouer } = journalUnique(suite, `apres-${m.id}`);
@@ -1234,6 +1346,8 @@
       sauver();
     }
     bloc.appendChild(journalUnique(messages(v.annonce), `verdict-${m.id}`).log);
+    const fin = finMessages(v);
+    if (fin.length) bloc.appendChild(journalUnique(fin, `fin-${m.id}`).log);
     const annonce = el('div', 'verdict-annonce');
     annonce.append(el('p', 'eyebrow', 'Paul n°1'), el('p', 'verdict-nom', nom(gagnant)), el('p', 'verdict-score', `${s[gagnant]} points contre ${s[perdant]}. ${nom(perdant)} devient Paul n°2.`));
     bloc.appendChild(annonce);
@@ -1259,6 +1373,34 @@
     return bloc;
   }
 
+  // ---------- Fin selon vos trahisons : ne change pas le score, seulement le récit et les mentions ----------
+  // Une trahison = l'option marquée trahison d'une décision à l'aveugle (dénoncer, garder l'enveloppe…)
+  function trahisons() {
+    const n = Object.fromEntries(ROLES.map((r) => [r, 0]));
+    ep.missions.forEach((m) => {
+      if (m.type !== 'choix' || m.trahison == null) return;
+      const c = etat.choix[m.id] || {};
+      if (c.moi === m.trahison) n[etat.role] += 1;
+      if (c.autre === m.trahison) n[autreRole(etat.role)] += 1;
+    });
+    return n;
+  }
+  function finMessages(v) {
+    if (!v.fins) return [];
+    const n = trahisons();
+    const [a, b] = ROLES;
+    const cle = n[a] >= 3 && n[b] >= 3 ? 'traitres' : !n[a] && !n[b] ? 'loyaux' : n[a] === n[b] ? 'pareils' : 'mixte';
+    const plus = n[a] > n[b] ? a : b;
+    const extra = { plus: surnom(plus), moins: surnom(autreRole(plus)), nplus: String(n[plus]), nmoins: String(n[autreRole(plus)]) };
+    return messages(v.fins[cle]).map((x) => ({ ...x, texte: remplacer(x.texte, extra) }));
+  }
+  function mentionDe(role) {
+    const v = (ep.missions.find((x) => x.verdict) || {}).verdict;
+    if (!v || !v.mentions) return null;
+    const liste = v.mentions.map(lire);
+    return liste[Math.min(trahisons()[role], liste.length - 1)];
+  }
+
   // Registre détaillé, pour retrouver une ligne qui ne concorde pas
   function detailRegistre() {
     const bloc = el('details', 'doc registre-detail');
@@ -1273,6 +1415,11 @@
         const c = etat.choix[x.id] || {};
         const opt = x.options.map(lire);
         liste.appendChild(el('li', null, `${numero(x)} · ${x.lieu} : toi « ${c.moi != null ? opt[c.moi] : '?'} », l’autre « ${c.autre != null ? opt[c.autre] : '?'} »`));
+      }
+      if (x.type === 'informateur' && etat.info[x.id]) {
+        const acc = accusations(x);
+        const dit = (r) => (acc[r] == null ? '?' : acc[r] ? 'accuse' : 'n’accuse pas');
+        liste.appendChild(el('li', null, `${numero(x)} · ${x.lieu} : toi ${dit(etat.role)}, l’autre ${dit(autreRole(etat.role))}`));
       }
     });
     bloc.append(liste, el('p', 'note', 'Pour rectifier un duel, rouvre l’épreuve concernée et touche « rectifier ».'));
@@ -1365,6 +1512,13 @@
     } else {
       c.fillText(`${nom(perdant)} est Paul n°2.`, L / 2, y + 400);
       c.fillText(`Registre de Paulitude : ${s[gagnant]} contre ${s[perdant]}.`, L / 2, y + 442);
+    }
+    const mention = mentionDe(titulaire);
+    if (mention) {
+      c.fillStyle = rouge;
+      c.font = police(26, true);
+      c.fillText(mention, L / 2, y + 500);
+      c.fillStyle = encre;
     }
     c.textAlign = 'left';
     c.font = police(24);
@@ -1601,6 +1755,45 @@
       album.forEach((m) => planche.appendChild(cliche(etat.photos[m.id], `${numero(m)} · ${m.lieu}`, maniere(m))));
       bloc.appendChild(planche);
     }
+    if (bavard && bavard.chinglish) bloc.appendChild(chasseChinglish());
+    return bloc;
+  }
+
+  // ---------- Chasse au Chinglish : panneaux mal traduits, sans points, commentés par l'inspecteur ----------
+  const MAX_CHINGLISH = 12;
+  function chasseChinglish() {
+    const ch = bavard.chinglish;
+    const bloc = el('section', 'chinglish');
+    const n = etat.chinglish.length;
+    bloc.append(
+      el('p', 'eyebrow', `${lire(ch.titre)} · ${n} pièce${n > 1 ? 's' : ''}`),
+      el('p', 'note mots-aide', lire(ch.aide)),
+    );
+    if (n) {
+      const planche = el('div', 'album');
+      etat.chinglish.forEach((src, i) => planche.appendChild(cliche(src, `pièce ${deuxChiffres(i + 1)}`, i % 2 ? 'scotch' : 'agrafe')));
+      bloc.appendChild(planche);
+    }
+    if (n >= MAX_CHINGLISH) {
+      bloc.appendChild(el('p', 'note', `Dossier plein (${MAX_CHINGLISH} pièces). Le Bureau n’a plus de trombones.`));
+      return bloc;
+    }
+    const fichier = champPhoto('environment', (donnees) => {
+      const avant = etat.chat.fil.length;
+      etat.chinglish.push(donnees);
+      const k = etat.chinglish.length;
+      if (ch.reactions && ch.reactions[k]) recevoir(`chinglish-${k}`, messages(ch.reactions[k]));
+      if (!sauver()) {
+        // localStorage full: drop the photo rather than lose the whole save
+        etat.chinglish.pop();
+        delete etat.chat.recus[`chinglish-${k}`];
+        etat.chat.fil.length = avant;
+        sauver();
+        window.alert('Mémoire du téléphone pleine pour ce jeu : photo non enregistrée.');
+      }
+      afficher();
+    }, 480);
+    bloc.append(fichier, bouton('lien-console', 'joindre un panneau mal traduit', () => fichier.click()));
     return bloc;
   }
 
