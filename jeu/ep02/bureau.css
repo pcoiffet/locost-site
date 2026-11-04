@@ -417,3 +417,47 @@ html:has(body.bureau), body.bureau { background: #0f0e0c; }
 .bulle.jour::before, .bulle.jour::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .bulle.jour .bulle-texte { flex: none; max-width: 80%; color: var(--red); font: 700 0.64rem/1.5 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; text-align: center; }
 .bulle.systeme .bulle-action { margin: 4px auto 0; text-transform: none; }
+
+/* ---------- DA « Feuilles sur le sous-main » (choisie par Paul le 4 nov. 2026) ---------- */
+body.bureau { --bg: #1d1813; --line: #3d342a; }
+html:has(body.bureau), body.bureau { background: #120f0b; }
+.defile {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(150, 110, 60, 0.16), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 7px),
+    #1d1813;
+}
+.bureau .barre, .avec-onglets .onglets, .zhang-pied { background: #120f0b; }
+/* Les feuilles : variables locales, tout ce qui est dedans passe à l'encre brune */
+.carte-jour, .fiche-candidat, .bulle.zhang, .bulle.faux, .rappels, .bureau .doc, .bureau .registre, .progression, .bureau .duel, .recit, .zhang-tete {
+  --fg: #2a2218; --fg-dim: #5b4d38; --fg-faint: #85765a; --line: rgba(70, 48, 18, 0.26);
+  --papier: #d8caa3; --encart: rgba(70, 48, 18, 0.07); --red: #a3291e; --tirage: #ece2c8;
+  color: var(--fg);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .08 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 30% 20%, rgba(255, 248, 225, 0.35), transparent 70%),
+    radial-gradient(ellipse at 100% 100%, rgba(120, 80, 25, 0.22), transparent 55%),
+    #d8caa3;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.45);
+  border-color: rgba(70, 48, 18, 0.2);
+}
+.zhang-tete { padding: 12px; margin-bottom: 4px; }
+.carte-jour { transform: rotate(-0.4deg); }
+.bureau .progression { padding: 12px; }
+.bureau .registre { margin-top: 10px; }
+.bulle.zhang { border-left: 3px solid #a3291e; }
+.bulle.moi { background: rgba(216, 202, 163, 0.12); color: #e6dabb; }
+.bulle.systeme .bulle-texte { color: #a89878; }
+.fiche-candidat .bouton, .carte-jour .bouton { border-color: #2a2218; color: #2a2218; }
+.carte-jour .code-champ { color: #2a2218; border-bottom-color: #2a2218; }
+.visa.bleu { color: #2e4a8a; } .visa.violet { color: #6a3f8a; } .visa.vert { color: #2f6b4a; } .visa.rouge { color: #a3291e; }
+.carte-chine svg { background: #d8caa3; border-color: rgba(0, 0, 0, 0.4); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45); }
+.carte-grille { stroke: rgba(70, 48, 18, 0.08); }
+.carte-voisins { fill: #cdbe96; stroke: #b2a27b; }
+.carte-terre { fill: #e3d7b3; stroke: #5b4d38; }
+.carte-pays { fill: rgba(70, 48, 18, 0.08); }
+.carte-ville { fill: #e3d7b3; stroke: #2a2218; }
+.carte-nom { fill: #2a2218; stroke: #d8caa3; }
+/* Pas de feuille dans la feuille : le registre et les lignes d'épreuves restent sur la feuille qui les porte */
+.progression .registre, .carte-jour .duel, .carte-jour .doc, .rappels .rappel, .rappels .doc { background: none; box-shadow: none; }
+.rappels { padding: 0 12px; }
