@@ -324,8 +324,6 @@ body.bureau { --texte: Georgia, "Times New Roman", "Noto Serif", serif; font: 16
 
 /* ---------- Refonte du 3 nov. : récit en tête du registre, carte seule, page du jour lisible ---------- */
 /* Barre d'onglets opaque jusqu'au bord de l'écran, avec un fondu au-dessus */
-.avec-onglets .onglets { box-shadow: 0 -18px 18px -6px #171614; }
-.avec-onglets .onglets::after { content: ""; position: absolute; top: 100%; left: 0; right: 0; height: 120px; background: #0f0e0c; }
 .bureau.avec-onglets .retour { margin-bottom: 8px; }
 
 /* Aujourd'hui */
@@ -360,3 +358,10 @@ body.bureau { --texte: Georgia, "Times New Roman", "Noto Serif", serif; font: 16
 
 /* Dossier : à quoi servent les mots */
 .mots-aide { margin: -2px 0 8px; font-size: 0.78rem; }
+
+/* ---------- Barres fixes (4 nov.) : la page ne défile qu'entre la barre du haut et les onglets ---------- */
+html:has(body.bureau), body.bureau { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.bureau .barre { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding-top: calc(10px + env(safe-area-inset-top)); }
+.bureau.avec-onglets { padding-bottom: 0; }
+.defile { position: fixed; left: 0; right: 0; top: 44px; bottom: 0; z-index: 1; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.bureau .onglets { z-index: 10; }
