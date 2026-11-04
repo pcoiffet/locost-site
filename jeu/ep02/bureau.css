@@ -413,3 +413,8 @@ html:has(body.bureau), body.bureau { background: #0f0e0c; }
   font: 700 0.7rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
 }
 .verdict-rate { margin-top: 28px; }
+/* Séparateur de jour dans le fil : date, lieu, jour N sur 13 */
+.bulle.jour { align-self: stretch; max-width: none; display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; padding: 0; border: 0; background: none; }
+.bulle.jour::before, .bulle.jour::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.bulle.jour .bulle-texte { flex: none; max-width: 80%; color: var(--red); font: 700 0.64rem/1.5 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; text-align: center; }
+.bulle.systeme .bulle-action { margin: 4px auto 0; text-transform: none; }

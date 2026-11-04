@@ -71,9 +71,10 @@
   const test = parametres.has('test');
   const CLE_SAUVEGARDE = test ? `locost-${ep.id}-test` : `locost-${ep.id}`;
   const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, portraits: {}, lus: {}, duels: {}, quiz: {}, verdict: {}, chat: chatVide() });
-  const chatVide = () => ({ fil: [], recus: {}, lu: 0, vus: {} });
+  const chatVide = () => ({ v: 2, fil: [], recus: {}, lu: 0, vus: {} });
   let etat;
   try { etat = { ...vide(), ...JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) || '{}') }; } catch { etat = vide(); }
+  if (!etat.chat || etat.chat.v !== 2) etat.chat = chatVide(); // older thread format: rebuilt from the progress
   function sauver() {
     try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify(etat)); } catch { /* quota or private mode: the game still works for this visit */ }
   }
@@ -234,7 +235,7 @@
     const titre = el('header', 'carte-jour-tete');
     const retard = m.date && m.date < date;
     titre.append(
-      el('p', 'carte-jour-sur', retard ? `En retard · ${dateCourte(m.date)}` : m.date ? 'Épreuve du jour' : 'Avant le départ'),
+      el('p', 'carte-jour-sur', retard ? `En retard · ${dateCourte(m.date)}` : m.date ? 'Épreuve du jour' : 'Avant d’embarquer'),
       el('h2', 'carte-jour-titre', `${numero(m)} · ${m.lieu}`),
       el('p', 'carte-jour-ville', m.ville),
     );
@@ -405,7 +406,7 @@
     etat.chat.vus[cle] = n + 1;
     return liste[n % liste.length];
   };
-  const nonLus = () => (bavard ? etat.chat.fil.slice(etat.chat.lu).filter((m) => m.qui !== 'moi').length : 0);
+  const nonLus = () => (bavard ? etat.chat.fil.slice(etat.chat.lu).filter((m) => m.qui === 'zhang' || m.qui === 'faux').length : 0);
   const faite = (id) => !!(id && etat.valides[lire(id)]);
   function enTete() {
     const s = scores();
@@ -417,7 +418,7 @@
   function prochaine() {
     const m = ep.missions.find((x) => !terminee(x));
     if (!m) return 'aucune, le Bureau en a fini avec vous';
-    return `épreuve ${numero(m)}, ${m.lieu}${m.date ? `, le ${dateCourte(m.date)}` : ', avant le départ'}`;
+    return `épreuve ${numero(m)}, ${m.lieu}${m.date ? `, le ${dateCourte(m.date)}` : ', avant d’embarquer'}`;
   }
   function remplacer(texte, extra = {}) {
     const s = scores();
@@ -440,22 +441,31 @@
     if (!bavard) return;
     const avant = etat.chat.fil.length;
     const date = aujourdhui();
+    const avis = (texte) => ({ qui: 'systeme', texte });
+    const aFaire = (m) => avis(`Formulaire du jour : ${numero(m)} · ${m.lieu}.`);
     const suites = (m) => {
-      if (etat.valides[m.id]) recevoir(`apres-${m.id}`, pourMoi(m.apres));
+      if (etat.valides[m.id]) recevoir(`apres-${m.id}`, [avis(`Formulaire ${numero(m)} validé.${m.duel ? ' Duel à disputer.' : ''}`), ...pourMoi(m.apres)]);
       const g = etat.duels[m.id];
       if (g) {
         const extra = g === 'egal' ? {} : { gagnant: surnom(g), perdant: surnom(autreRole(g)) };
         const texte = remplacer(tirer((g === 'egal' ? bavard.egalite : bavard.victoire).map(lire), 'duel'), extra);
-        recevoir(`duel-${m.id}-${g}`, [{ qui: 'zhang', texte }]);
+        recevoir(`duel-${m.id}-${g}`, [avis(`Duel ${numero(m)} · ${lire(m.duel.titre)} : ${g === 'egal' ? 'égalité' : `point pour ${surnom(g)}`}.`), { qui: 'zhang', texte }]);
       }
       if (m.verdict && etat.verdict.rendu) recevoir('verdict', pourMoi(bavard.verdict));
     };
-    recevoir('intro', messages(ep.transmission), 'jour');
-    ep.missions.filter((m) => !m.date).forEach(suites);
+    const sansDate = ep.missions.filter((m) => !m.date);
+    recevoir('intro', [...messages(ep.transmission), ...sansDate.filter((m) => !terminee(m)).map(aFaire)], 'jour');
+    sansDate.forEach(suites);
     const jours = [...new Set([...Object.keys(bavard.matin || {}), ...jouables.map((m) => m.date)])].sort();
+    const premier = jours[0];
     jours.filter((d) => d <= date).forEach((d) => {
-      recevoir(`matin-${d}`, pourMoi(bavard.matin && bavard.matin[d]), ep.missions.some((m) => m.date === d && !terminee(m)) ? 'jour' : null);
-      ep.missions.filter((m) => m.date === d).forEach(suites);
+      const duJour = ep.missions.filter((m) => m.date === d);
+      const lieux = (bavard.lieuxJour && bavard.lieuxJour[d] && lire(bavard.lieuxJour[d])) || [...new Set(duJour.map((m) => m.ville))].join(', ');
+      const n = Math.round((Date.parse(d) - Date.parse(premier)) / 86400000) + 1;
+      const separateur = { qui: 'jour', texte: `${libelleDate(d)}\n${lieux} · jour ${n} sur ${jours.length}` };
+      const ouverts = duJour.filter((m) => !terminee(m));
+      recevoir(`matin-${d}`, [separateur, ...pourMoi(bavard.matin && bavard.matin[d]), ...ouverts.map(aFaire)], ouverts.length ? 'jour' : null);
+      duJour.forEach(suites);
     });
     ep.missions.filter((m) => m.date && m.date > date).forEach(suites); // opened early
     if (etat.chat.fil.length !== avant) sauver();
@@ -538,7 +548,7 @@
     try {
       while (etat.chat.lu < etat.chat.fil.length) {
         const m = etat.chat.fil[etat.chat.lu];
-        if (m.qui !== 'moi' && !calme && !chatVite) {
+        if (!['moi', 'jour'].includes(m.qui) && !calme && !chatVite) {
           const attente = el('div', `bulle ${m.qui} ecrit`);
           attente.appendChild(el('p', 'bulle-texte', m.qui === 'systeme' ? '…' : 'Zhang écrit…'));
           fil.appendChild(attente);
@@ -555,7 +565,7 @@
         enBas();
         const badge = nav.querySelector('.onglet-badge');
         if (badge) { if (nonLus()) badge.textContent = String(nonLus()); else badge.remove(); }
-        if (m.qui !== 'moi' && !calme && !chatVite) await attendre(250);
+        if (!['moi', 'jour'].includes(m.qui) && !calme && !chatVite) await attendre(m.qui === 'systeme' ? 120 : 250);
         if (numeroLecture !== lectureChat) return;
       }
     } finally {
