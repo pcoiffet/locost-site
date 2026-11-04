@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
-<defs><radialGradient id="v" cx="50%" cy="45%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#3a2a12" stop-opacity=".45"/></radialGradient>
-<filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .2 0 0 0 0 .16 0 0 0 0 .1 0 0 0 .22 0"/></filter></defs>
-<rect width="300" height="220" fill="#d8ccb2"/>
-<g fill="none" stroke="#2a251d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 150h200q60 0 80-30h-90q-20-20-60-20H10z"/><path d="M30 110h40v20H30zM90 110h40v20H90zM150 112l30 0 10 18h-40z"/>
-<path d="M0 170h300M0 182h300" stroke-width="1.5"/><path d="M20 170l-6 12M60 170l-6 12M100 170l-6 12M140 170l-6 12M180 170l-6 12M220 170l-6 12M260 170l-6 12" stroke-width="1"/>
-<path d="M20 60h40M30 70h60M200 50h70" stroke-width="1"/></g>
-<rect width="300" height="220" filter="url(#g)"/><rect width="300" height="220" fill="url(#v)"/></svg>

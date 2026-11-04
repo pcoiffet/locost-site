@@ -903,7 +903,7 @@
       return;
     }
 
-    if (m.image) corps.appendChild(cliche(`${images}${m.image}`, null, 'archive'));
+    if (m.image) corps.appendChild(cliche(`${images}${m.image}`, lire(m.legende), 'archive agrafe'));
     corps.appendChild(el('p', 'mission-texte', lire(m.commun)));
     const terrain = m.terrain === 'deux' || m.terrain === etat.role;
     corps.appendChild(el('p', 'mission-role', m.terrain === 'deux' ? T.deux : terrain ? T.terrain : T.cle));
