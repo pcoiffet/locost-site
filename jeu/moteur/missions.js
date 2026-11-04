@@ -70,7 +70,8 @@
   const parametres = new URLSearchParams(location.search);
   const test = parametres.has('test');
   const CLE_SAUVEGARDE = test ? `locost-${ep.id}-test` : `locost-${ep.id}`;
-  const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, portraits: {}, lus: {}, duels: {}, quiz: {}, verdict: {} });
+  const vide = () => ({ role: null, valides: {}, essais: {}, jokers: {}, forces: {}, verrous: {}, choix: {}, photos: {}, portraits: {}, lus: {}, duels: {}, quiz: {}, verdict: {}, chat: chatVide() });
+  const chatVide = () => ({ fil: [], recus: {}, lu: 0, vus: {} });
   let etat;
   try { etat = { ...vide(), ...JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) || '{}') }; } catch { etat = vide(); }
   function sauver() {
@@ -131,9 +132,12 @@
   }
 
   // ---------- Onglets : Aujourd'hui · Carte · Dossier · Registre ----------
-  const ONGLETS = [['jour', 'Aujourd’hui'], ['carte', 'Carte'], ['dossier', 'Dossier'], ['registre', 'Registre']];
-  let onglet = 'jour';
-  try { onglet = sessionStorage.getItem(`${CLE_SAUVEGARDE}-onglet`) || 'jour'; } catch { /* private mode */ }
+  // Messagerie (onglet de l'inspecteur) : seulement si l'épisode la décrit
+  const bavard = ep.messagerie || null;
+  const ONGLETS = [...(bavard ? [['zhang', bavard.onglet || 'Messages']] : []), ['jour', 'Aujourd’hui'], ['carte', 'Carte'], ['dossier', 'Dossier'], ['registre', 'Registre']];
+  const accueil = bavard ? 'zhang' : 'jour';
+  let onglet = accueil;
+  try { onglet = sessionStorage.getItem(`${CLE_SAUVEGARDE}-onglet`) || accueil; } catch { /* private mode */ }
   const ouverts = new Set(); // missions dépliées par le joueur, gardées d'un rendu à l'autre
   const nav = el('nav', 'onglets');
   nav.setAttribute('aria-label', 'Menu du jeu');
@@ -159,22 +163,44 @@
     barre.firstChild.textContent = etat.role ? `EP${ep.numero}` : T.barre;
     document.body.classList.toggle('avec-onglets', !!etat.role);
     nav.textContent = '';
+    if (piedChat) { piedChat.remove(); piedChat = null; }
+    document.body.classList.toggle('onglet-zhang', !!etat.role && onglet === 'zhang');
     if (!etat.role) { choixRole(); return caler(); }
+    distribuer();
+    lectureChat += 1; // stops a chat animation started by a previous render
     ONGLETS.forEach(([id, libelle]) => {
       const b = bouton(`onglet${id === onglet ? ' actif' : ''}`, libelle, () => changerOnglet(id));
+      if (id === 'zhang' && nonLus()) b.appendChild(el('span', 'onglet-badge', String(nonLus())));
       b.dataset.onglet = id;
       if (id === onglet) b.setAttribute('aria-current', 'page');
       nav.appendChild(b);
     });
-    const vues = { jour: vueJour, carte: vueCarte, dossier: vueDossier, registre: vueRegistre };
+    const vues = { zhang: vueZhang, jour: vueJour, carte: vueCarte, dossier: vueDossier, registre: vueRegistre };
     zone.appendChild((vues[onglet] || vueJour)());
     caler();
+    if (onglet === 'zhang') animerChat();
   }
+  // Hauteur de la zone qui défile ; sur l'onglet de l'inspecteur, la saisie se pose au-dessus des onglets,
+  // ou au-dessus du clavier quand il est ouvert (visualViewport)
+  let piedChat = null;
   function caler() {
     defile.style.top = `${barre.offsetHeight}px`;
-    defile.style.bottom = `${etat.role ? nav.offsetHeight : 0}px`;
+    let bas = etat.role ? nav.offsetHeight : 0;
+    if (piedChat) {
+      const vv = window.visualViewport;
+      const clavier = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+      piedChat.style.bottom = `${Math.max(bas, clavier)}px`;
+      bas = Math.max(bas, clavier) + piedChat.offsetHeight;
+    }
+    defile.style.bottom = `${bas}px`;
   }
   window.addEventListener('resize', caler);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => { caler(); if (piedChat) enBas(); });
+    window.visualViewport.addEventListener('scroll', caler);
+  }
+
+  const libelleDate = (date) => new Date(`${date}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
   // Aujourd'hui : une carte claire pour l'épreuve du jour, ses étapes, puis la suivante
   function vueJour() {
@@ -182,7 +208,7 @@
     const date = aujourdhui();
     const premier = jouables[0].date;
     const jour = Math.round((Date.parse(date) - Date.parse(premier)) / 86400000) + 2; // jour 1 = départ de Paris, la veille
-    const libelle = new Date(`${date}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    const libelle = libelleDate(date);
     const tete = el('header', 'jour-tete');
     const avant = Math.round((Date.parse(premier) - Date.parse(date)) / 86400000) - 1;
     tete.append(el('p', 'jour-date', libelle), el('p', 'jour-compte', jour >= 1 && jour <= 13 ? `Jour ${jour} sur 13` : avant > 0 ? `Départ dans ${avant} jour${avant > 1 ? 's' : ''}` : 'Voyage terminé'));
@@ -327,7 +353,7 @@
   // ensuite le score et les épreuves déjà ouvertes. Rien de ce qui n'est pas encore arrivé n'apparaît.
   function vueRegistre() {
     const vue = el('section', 'vue vue-registre');
-    vue.appendChild(recit());
+    if (!bavard) vue.appendChild(recit()); // with a chat, the story lives in the inspector's tab
     vue.appendChild(progression());
     const ouvertes = ep.missions.filter(ouverte);
     const tableau = el('div', 'registre-duels');
@@ -365,6 +391,185 @@
     return bloc;
   }
 
+
+  // ---------- Messagerie : l'inspecteur écrit chaque jour, et répond à quelques demandes ----------
+  // Les messages arrivent dans un fil gardé dans la sauvegarde (etat.chat.fil), dans l'ordre où ils deviennent
+  // disponibles : notification d'ouverture, message du matin de chaque jour, suites d'épreuve, résultats de duel.
+  // Les réponses aux messages du joueur viennent de règles par mots-clés (pas de serveur, pas d'IA).
+  let lectureChat = 0;
+  let chatActif = -1; // render number of the running animation, -1 when idle
+  let chatVite = false; // a tap on the thread skips the typing delays
+  const phraseNormale = (t) => ` ${String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe').replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const tirer = (liste, cle) => {
+    const n = etat.chat.vus[cle] || 0;
+    etat.chat.vus[cle] = n + 1;
+    return liste[n % liste.length];
+  };
+  const nonLus = () => (bavard ? etat.chat.fil.slice(etat.chat.lu).filter((m) => m.qui !== 'moi').length : 0);
+  const faite = (id) => !!(id && etat.valides[lire(id)]);
+  function enTete() {
+    const s = scores();
+    const [a, b] = ROLES;
+    if (s[a] === s[b]) return `égalité parfaite, ${s[a]} partout`;
+    const g = s[a] > s[b] ? a : b;
+    return `${surnom(g)} mène ${s[g]} à ${s[autreRole(g)]}`;
+  }
+  function prochaine() {
+    const m = ep.missions.find((x) => !terminee(x));
+    if (!m) return 'aucune, le Bureau en a fini avec vous';
+    return `épreuve ${numero(m)}, ${m.lieu}${m.date ? `, le ${dateCourte(m.date)}` : ', avant le départ'}`;
+  }
+  function remplacer(texte, extra = {}) {
+    const s = scores();
+    const pseudos = (ep.roles[etat.role].pseudos || []).map(lire);
+    const valeurs = {
+      moi: surnom(etat.role), autre: surnom(autreRole(etat.role)),
+      pseudo: pseudos.length ? pseudos[etat.chat.fil.length % pseudos.length] : surnom(etat.role),
+      score: ROLES.map((r) => `${surnom(r)} ${s[r]}`).join(', '), tete: enTete(), prochaine: prochaine(),
+      jour: libelleDate(aujourdhui()), numero: String(40961 + etat.chat.fil.length * 37), ...extra,
+    };
+    return texte.replace(/\{(\w+)\}/g, (tout, k) => (k in valeurs ? valeurs[k] : tout));
+  }
+  const pourMoi = (bloc) => (Array.isArray(bloc) ? messages(bloc) : bloc ? [...messages(bloc.commun), ...messages(bloc[etat.role])] : []);
+  function recevoir(cle, liste, action) {
+    if (etat.chat.recus[cle] || !liste.length) return;
+    etat.chat.recus[cle] = true;
+    liste.forEach((m, i) => etat.chat.fil.push({ qui: m.qui, texte: remplacer(m.texte), ...(action && i === liste.length - 1 ? { action } : {}) }));
+  }
+  function distribuer() {
+    if (!bavard) return;
+    const avant = etat.chat.fil.length;
+    const date = aujourdhui();
+    const suites = (m) => {
+      if (etat.valides[m.id]) recevoir(`apres-${m.id}`, pourMoi(m.apres));
+      const g = etat.duels[m.id];
+      if (g) {
+        const extra = g === 'egal' ? {} : { gagnant: surnom(g), perdant: surnom(autreRole(g)) };
+        const texte = remplacer(tirer((g === 'egal' ? bavard.egalite : bavard.victoire).map(lire), 'duel'), extra);
+        recevoir(`duel-${m.id}-${g}`, [{ qui: 'zhang', texte }]);
+      }
+      if (m.verdict && etat.verdict.rendu) recevoir('verdict', pourMoi(bavard.verdict));
+    };
+    recevoir('intro', messages(ep.transmission), 'jour');
+    ep.missions.filter((m) => !m.date).forEach(suites);
+    const jours = [...new Set([...Object.keys(bavard.matin || {}), ...jouables.map((m) => m.date)])].sort();
+    jours.filter((d) => d <= date).forEach((d) => {
+      recevoir(`matin-${d}`, pourMoi(bavard.matin && bavard.matin[d]), ep.missions.some((m) => m.date === d && !terminee(m)) ? 'jour' : null);
+      ep.missions.filter((m) => m.date === d).forEach(suites);
+    });
+    ep.missions.filter((m) => m.date && m.date > date).forEach(suites); // opened early
+    if (etat.chat.fil.length !== avant) sauver();
+  }
+  function repondre(texte) {
+    const phrase = phraseNormale(texte);
+    const court = texte.length > 60 ? `${texte.slice(0, 57)}…` : texte;
+    for (let i = 0; i < bavard.regles.length; i++) {
+      const r = bavard.regles[i];
+      if ((r.si && !faite(r.si)) || (r.sauf && faite(r.sauf))) continue;
+      if (!r.mots.some((mot) => phrase.includes(phraseNormale(lire(mot))))) continue;
+      return remplacer(tirer(r.reponses.map(lire), `r${i}`), { texte: court });
+    }
+    return remplacer(tirer(bavard.defaut.map(lire), 'defaut'), { texte: court });
+  }
+
+  function vueZhang() {
+    const vue = el('section', 'vue vue-zhang');
+    const tete = el('header', 'zhang-tete');
+    const ident = el('div');
+    ident.append(el('p', 'zhang-nom', lire(bavard.nom)), el('p', 'zhang-statut', lire(bavard.statut)));
+    tete.append(el('span', 'zhang-avatar', '张'), ident);
+    const fil = el('div', 'fil');
+    fil.setAttribute('aria-live', 'polite');
+    fil.addEventListener('click', () => { chatVite = true; });
+    etat.chat.fil.slice(0, etat.chat.lu).forEach((m, i) => fil.appendChild(bulle(m, i)));
+    const idees = el('div', 'zhang-idees');
+    const suggestions = (bavard.suggestions || []).map(lire);
+    const depart = etat.chat.fil.filter((m) => m.qui === 'moi').length;
+    for (let k = 0; k < Math.min(3, suggestions.length); k++) {
+      const idee = suggestions[(depart + k) % suggestions.length];
+      idees.appendChild(bouton('zhang-idee', idee, () => envoyer(idee)));
+    }
+    const form = el('form', 'zhang-saisie');
+    const champ = el('input', 'zhang-champ');
+    Object.assign(champ, { type: 'text', autocomplete: 'off', placeholder: 'Écrire au Bureau…', maxLength: 300 });
+    champ.setAttribute('aria-label', 'Message à l’inspecteur');
+    const go = el('button', 'zhang-envoyer', 'Envoyer');
+    go.type = 'submit';
+    form.append(champ, go);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      envoyer(champ.value);
+      champ.value = '';
+    });
+    function envoyer(texte) {
+      texte = texte.trim();
+      if (!texte) return;
+      etat.chat.fil.push({ qui: 'moi', texte }, { qui: 'zhang', texte: repondre(texte) });
+      sauver();
+      animerChat();
+    }
+    vue.append(tete, fil);
+    piedChat = el('div', 'zhang-pied');
+    piedChat.append(idees, form);
+    document.body.appendChild(piedChat);
+    return vue;
+  }
+
+  // Bulle d'un message ; le lien vers le formulaire du jour ne reste que sur le dernier message qui en porte un
+  function bulle(m, i) {
+    const b = el('div', `bulle ${m.qui}`);
+    if (m.qui === 'faux') b.appendChild(el('span', 'bulle-signe', 'Zhang · 0010'));
+    b.appendChild(el('p', 'bulle-texte', m.texte));
+    const derniere = etat.chat.fil.reduce((d, x, k) => (x.action ? k : d), -1);
+    if (m.action === 'jour' && i === derniere) b.appendChild(bouton('lien-console bulle-action', 'ouvrir le formulaire du jour', () => changerOnglet('jour')));
+    return b;
+  }
+  const enBas = () => { defile.scrollTop = defile.scrollHeight; };
+
+  // Joue les messages non lus : « Zhang écrit… », puis le texte tapé. Un nouveau rendu interrompt la lecture.
+  async function animerChat() {
+    const fil = zone.querySelector('.fil');
+    if (!fil) return;
+    enBas();
+    if (chatActif === lectureChat) return; // already playing in this view: the loop picks up new messages
+    const numeroLecture = lectureChat;
+    chatActif = numeroLecture;
+    chatVite = false;
+    try {
+      while (etat.chat.lu < etat.chat.fil.length) {
+        const m = etat.chat.fil[etat.chat.lu];
+        if (m.qui !== 'moi' && !calme && !chatVite) {
+          const attente = el('div', `bulle ${m.qui} ecrit`);
+          attente.appendChild(el('p', 'bulle-texte', m.qui === 'systeme' ? '…' : 'Zhang écrit…'));
+          fil.appendChild(attente);
+          enBas();
+          await attendre(Math.min(1800, 500 + m.texte.length * 12));
+          attente.remove();
+          if (numeroLecture !== lectureChat) return;
+        }
+        fil.querySelectorAll('.bulle-action').forEach((a) => a.remove());
+        const b = bulle(m, etat.chat.lu);
+        fil.appendChild(b);
+        etat.chat.lu += 1;
+        sauver();
+        enBas();
+        const badge = nav.querySelector('.onglet-badge');
+        if (badge) { if (nonLus()) badge.textContent = String(nonLus()); else badge.remove(); }
+        if (m.qui !== 'moi' && !calme && !chatVite) await attendre(250);
+        if (numeroLecture !== lectureChat) return;
+      }
+    } finally {
+      if (chatActif === numeroLecture) chatActif = -1;
+    }
+  }
+  // Retour sur l'appli (le lendemain, après une épreuve sur l'autre téléphone…) : distribuer ce qui est arrivé
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !etat.role || !bavard) return;
+    const n = etat.chat.fil.length;
+    distribuer();
+    if (etat.chat.fil.length !== n) afficher();
+  });
+
   // ---------- Choix du dossier (rôle) ----------
   function choixRole() {
     const bloc = el('section', 'roles');
@@ -376,7 +581,7 @@
         if (!window.confirm(`Confirmer : tu es ${nom(role)} ?`)) return;
         etat.role = role;
         sauver();
-        onglet = 'registre'; // première ouverture : le récit d'abord
+        onglet = bavard ? 'zhang' : 'registre'; // première ouverture : le récit d'abord
         try { sessionStorage.setItem(`${CLE_SAUVEGARDE}-onglet`, onglet); } catch { /* private mode */ }
         afficher();
         defile.scrollTop = 0;
@@ -1030,6 +1235,17 @@
     image.addEventListener('load', () => { lien.href = image.src; }); // after the portrait is stapled
     lien.download = 'certificat-paul-n1.png';
     bloc.appendChild(lien);
+    // Lot de consolation : le certificat raté de Paul n°2, tamponné de travers
+    if (v.certificatRate) {
+      bloc.appendChild(el('p', 'eyebrow verdict-rate', 'Et pour l’autre candidat'));
+      const rate = certificat(lire(v.certificatRate), gagnant, perdant, s, true);
+      bloc.appendChild(rate);
+      const lienRate = el('a', 'bouton', 'Enregistrer le certificat de Paul n°2');
+      lienRate.href = rate.src;
+      rate.addEventListener('load', () => { lienRate.href = rate.src; });
+      lienRate.download = 'certificat-paul-n2.png';
+      bloc.appendChild(lienRate);
+    }
     return bloc;
   }
 
@@ -1053,8 +1269,11 @@
     return bloc;
   }
 
-  // Certificat dessiné sur un canvas, à enregistrer en image
-  function certificat(phrase, gagnant, perdant, s) {
+  // Certificat dessiné sur un canvas, à enregistrer en image.
+  // rate = true : version de Paul n°2 (« homologué Locost »), papier taché, rang barré, tampon qui déborde
+  function certificat(phrase, gagnant, perdant, s, rate) {
+    const titulaire = rate ? perdant : gagnant;
+    const adversaire = rate ? gagnant : perdant;
     const L = 1080;
     const H = 1350;
     const toile = document.createElement('canvas');
@@ -1064,8 +1283,20 @@
     const encre = '#1f1c17';
     const rouge = '#b0241b';
     const police = (taille, gras) => `${gras ? 'bold ' : ''}${taille}px "Courier New", Courier, monospace`;
-    c.fillStyle = '#efe8d8';
+    c.fillStyle = rate ? '#e8dcc0' : '#efe8d8';
     c.fillRect(0, 0, L, H);
+    if (rate) {
+      // Rond de café, posé sur le document par le stagiaire
+      c.strokeStyle = 'rgba(115, 72, 28, 0.22)';
+      c.lineWidth = 16;
+      c.beginPath();
+      c.arc(L - 230, 270, 88, 0.3, Math.PI * 1.85);
+      c.stroke();
+      c.lineWidth = 5;
+      c.beginPath();
+      c.arc(L - 222, 262, 74, 0, Math.PI * 2);
+      c.stroke();
+    }
     c.strokeStyle = encre;
     c.lineWidth = 4;
     c.strokeRect(40, 40, L - 80, H - 80);
@@ -1081,7 +1312,7 @@
     c.font = police(46, true);
     c.fillText('CERTIFICAT', L / 2, 320);
     c.font = police(28);
-    c.fillText('D’ATTRIBUTION DE RANG', L / 2, 362);
+    c.fillText(rate ? 'DE RANG SECONDAIRE' : 'D’ATTRIBUTION DE RANG', L / 2, 362);
     // Phrase officielle, coupée en lignes
     let y = 470;
     let ligne = '';
@@ -1095,25 +1326,45 @@
     });
     c.fillText(ligne.trim(), L / 2, y);
     c.font = police(56, true);
-    c.fillText(nom(gagnant).toUpperCase(), L / 2, y + 120);
+    c.fillText(nom(titulaire).toUpperCase(), L / 2, y + 120);
     c.font = police(30);
     c.fillText('est officiellement', L / 2, y + 190);
     c.fillStyle = rouge;
     c.font = police(110, true);
     c.fillText('PAUL N°1', L / 2, y + 320);
+    if (rate) {
+      // Rang rayé à la main, corrigé au-dessus
+      c.strokeStyle = rouge;
+      c.lineWidth = 9;
+      c.beginPath();
+      c.moveTo(L / 2 - 300, y + 300);
+      c.lineTo(L / 2 + 300, y + 268);
+      c.stroke();
+      c.save();
+      c.translate(L / 2 + 250, y + 225);
+      c.rotate(-0.22);
+      c.font = police(64, true);
+      c.fillText('N°2', 0, 0);
+      c.restore();
+    }
     c.fillStyle = encre;
     c.font = police(26);
-    c.fillText(`${nom(perdant)} est Paul n°2.`, L / 2, y + 400);
-    c.fillText(`Registre de Paulitude : ${s[gagnant]} contre ${s[perdant]}.`, L / 2, y + 442);
+    if (rate) {
+      c.fillText('Homologué Locost (sans garantie).', L / 2, y + 400);
+      c.fillText(`Registre de Paulitude : ${s[titulaire]} contre ${s[adversaire]}. Le Bureau a vu pire.`, L / 2, y + 442);
+    } else {
+      c.fillText(`${nom(perdant)} est Paul n°2.`, L / 2, y + 400);
+      c.fillText(`Registre de Paulitude : ${s[gagnant]} contre ${s[perdant]}.`, L / 2, y + 442);
+    }
     c.textAlign = 'left';
     c.font = police(24);
     c.fillText('Chongqing, novembre 2026', 110, H - 170);
-    c.fillText('Inspecteur Zhang Bǎoluó', 110, H - 130);
-    c.fillText('matricule 0001', 110, H - 98);
-    // Tampon rouge, légèrement de travers
+    c.fillText(rate ? 'p.o. le stagiaire du Bureau' : 'Inspecteur Zhang Bǎoluó', 110, H - 130);
+    c.fillText(rate ? '(l’inspecteur était occupé)' : 'matricule 0001', 110, H - 98);
+    // Tampon rouge, légèrement de travers (franchement de travers et à moitié hors du papier pour Paul n°2)
     c.save();
-    c.translate(L - 250, H - 190);
-    c.rotate(-0.18);
+    c.translate(rate ? L - 95 : L - 250, rate ? H - 120 : H - 190);
+    c.rotate(rate ? 0.62 : -0.18);
     c.strokeStyle = rouge;
     c.fillStyle = rouge;
     c.globalAlpha = 0.85;
@@ -1127,16 +1378,17 @@
     c.stroke();
     c.textAlign = 'center';
     c.font = police(64, true);
-    c.fillText('第一', 0, 22);
+    if (rate) c.globalAlpha = 0.6;
+    c.fillText(rate ? '第二' : '第一', 0, 22);
     c.font = police(20, true);
-    c.fillText('CERTIFIÉ', 0, -50);
+    c.fillText(rate ? 'PRESQUE' : 'CERTIFIÉ', 0, -50);
     c.fillText('CONFORME', 0, 72);
     c.restore();
     const image = el('img', 'certificat');
-    image.alt = `Certificat : ${nom(gagnant)} est officiellement Paul n°1`;
+    image.alt = rate ? `Certificat de rang secondaire : ${nom(titulaire)}, Paul n°2` : `Certificat : ${nom(gagnant)} est officiellement Paul n°1`;
     image.src = toile.toDataURL('image/png');
     // Photo d'identité du gagnant, agrafée en haut à gauche
-    if (etat.portraits[gagnant]) {
+    if (etat.portraits[titulaire]) {
       const portrait = new Image();
       portrait.onload = () => {
         const l = 140;
@@ -1144,7 +1396,7 @@
         const cote = Math.min(portrait.width, portrait.height / 1.28);
         c.save();
         c.translate(80, 70);
-        c.rotate(-0.06);
+        c.rotate(rate ? 0.14 : -0.06);
         c.shadowColor = 'rgba(60, 40, 10, 0.35)';
         c.shadowBlur = 14;
         c.shadowOffsetY = 4;
@@ -1160,7 +1412,7 @@
         c.restore();
         image.src = toile.toDataURL('image/png');
       };
-      portrait.src = etat.portraits[gagnant];
+      portrait.src = etat.portraits[titulaire];
     }
     return image;
   }
@@ -1348,6 +1600,7 @@
       bouton('lien-console discret', `changer de dossier (actuel : ${nom(etat.role)})`, () => {
         if (!window.confirm('Changer de dossier ? À faire seulement si vous vous êtes trompés de téléphone.')) return;
         etat.role = autreRole(etat.role);
+        etat.chat = chatVide(); // the conversation was written for the other candidate
         sauver();
         afficher();
       }),

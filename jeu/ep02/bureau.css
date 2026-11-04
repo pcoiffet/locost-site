@@ -365,3 +365,51 @@ html:has(body.bureau), body.bureau { height: 100%; overflow: hidden; overscroll-
 .bureau.avec-onglets { padding-bottom: 0; }
 .defile { position: fixed; left: 0; right: 0; top: 44px; bottom: 0; z-index: 1; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .bureau .onglets { z-index: 10; }
+/* Sous la barre d'état et sous la barre de Safari, iOS laisse voir le fond du document : même couleur que les bandeaux */
+html:has(body.bureau), body.bureau { background: #0f0e0c; }
+.defile { background: radial-gradient(ellipse at 20% 0%, rgba(255, 240, 210, 0.04), transparent 60%), var(--bg); }
+
+/* ---------- Messagerie de l'inspecteur Zhang ---------- */
+.onglets { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 1fr; }
+.onglets .onglet { letter-spacing: 0.06em; }
+.onglet-badge {
+  position: absolute; top: 9px; right: calc(50% - 26px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+  background: var(--red); color: #fff; font: 700 0.6rem/16px var(--mono); letter-spacing: 0;
+}
+.zhang-tete { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.zhang-avatar {
+  flex: none; display: grid; place-items: center; width: 42px; height: 42px; border: 1.5px solid var(--red); border-radius: 50%;
+  color: var(--red); font-size: 1.25rem; transform: rotate(-8deg);
+}
+.zhang-nom { margin: 0; color: var(--fg); font: 700 0.8rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.zhang-statut { margin: 2px 0 0; color: var(--fg-faint); font: 0.64rem var(--mono); letter-spacing: 0.06em; }
+.fil { display: flex; flex-direction: column; gap: 10px; padding: 16px 0 12px; }
+.bulle { max-width: 86%; padding: 10px 13px; border: 1px solid var(--line); background: var(--papier); }
+.bulle-texte { margin: 0; line-height: 1.45; white-space: pre-line; }
+.bulle.zhang { align-self: flex-start; border-left: 2px solid var(--red); }
+.bulle.moi { align-self: flex-end; background: rgba(214, 207, 192, 0.09); border-color: transparent; color: var(--fg); }
+.bulle.systeme { align-self: center; max-width: 92%; padding: 4px 8px; border: 0; background: none; text-align: center; }
+.bulle.systeme .bulle-texte { color: var(--fg-faint); font: 0.68rem/1.5 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.bulle.faux { align-self: flex-start; border: 1px dashed var(--red); }
+.bulle-signe { display: block; margin-bottom: 4px; color: var(--red); font: 700 0.62rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.bulle.ecrit .bulle-texte { color: var(--fg-faint); font: italic 0.8rem var(--mono); animation: clignote 1.2s steps(2) infinite; }
+.bulle-action { display: block; margin-top: 8px; padding: 0; font-size: 0.7rem; }
+@keyframes clignote { 50% { opacity: 0.45; } }
+.zhang-pied { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; padding: 8px 16px 10px; background: #0f0e0c; border-top: 1px solid var(--line); }
+.onglet-zhang .retour { display: none; }
+.zhang-idees { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 8px; scrollbar-width: none; }
+.zhang-idee {
+  flex: none; padding: 6px 10px; border: 1px solid var(--line); border-radius: 14px; background: none;
+  color: var(--fg-dim); font: 0.72rem var(--mono); cursor: pointer;
+}
+.zhang-saisie { display: flex; gap: 8px; }
+.zhang-champ {
+  flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 0; background: var(--encart);
+  color: var(--fg); font: 16px var(--mono); /* 16 px : iOS ne zoome pas sur le champ */
+}
+.zhang-champ:focus { outline: none; border-color: var(--fg-dim); }
+.zhang-envoyer {
+  flex: none; padding: 0 12px; border: 1.5px solid var(--fg); background: none; color: var(--fg);
+  font: 700 0.7rem var(--mono); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+}
+.verdict-rate { margin-top: 28px; }
