@@ -290,10 +290,9 @@ body.bureau { --texte: Georgia, "Times New Roman", "Noto Serif", serif; font: 16
 .bureau .douane-tete { background: none; border-bottom: 1px solid var(--line); }
 .bureau .fiche-candidat { border: 1px solid var(--line); }
 
-/* Épreuve : la photo devient un bandeau fin */
-.cliche.archive { max-width: none; margin: 4px 0 14px; padding: 4px; transform: none; box-shadow: none; }
-.cliche.archive::before, .cliche.archive::after { content: none; }
-.cliche.archive img { aspect-ratio: 3 / 1; object-fit: cover; }
+/* Épreuve : tirage d'archive agrafé (photo d'époque ou document du Bureau), format 2:1 */
+.cliche.archive { max-width: none; margin: 10px 4px 18px; padding: 6px 6px 8px; transform: rotate(-0.8deg); }
+.cliche.archive img { aspect-ratio: 2 / 1; object-fit: cover; filter: none; }
 
 /* Fiche compacte : ce qui ne bouge pas est replié */
 .douane-nom { font-weight: 700; }
