@@ -75,6 +75,12 @@
   let etat;
   try { etat = { ...vide(), ...JSON.parse(localStorage.getItem(CLE_SAUVEGARDE) || '{}') }; } catch { etat = vide(); }
   if (!etat.chat || etat.chat.v !== 2) etat.chat = chatVide(); // older thread format: rebuilt from the progress
+  // Nouvelle campagne (ep.campagne) : la progression laissée par les essais d'avant le départ est effacée une fois
+  if (!test && ep.campagne && etat.campagne !== ep.campagne) {
+    etat = { ...vide(), campagne: ep.campagne };
+    try { sessionStorage.removeItem(`${CLE_SAUVEGARDE}-onglet`); } catch { /* private mode */ }
+    sauver();
+  }
   function sauver() {
     try { localStorage.setItem(CLE_SAUVEGARDE, JSON.stringify(etat)); return true; } catch { return false; /* quota or private mode: the game still works for this visit */ }
   }
@@ -1809,7 +1815,7 @@
       }),
       bouton('lien-console discret', 'effacer la progression', () => {
         if (!window.confirm('Effacer toute la progression de ce téléphone ?')) return;
-        etat = vide();
+        etat = { ...vide(), campagne: ep.campagne };
         sauver();
         afficher();
       }),

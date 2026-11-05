@@ -8,6 +8,7 @@ window.EPISODE = {
   "titre": "Le Bureau des Doublons",
   "lieu": "Chine",
   "statut": "en-cours",
+  "campagne": "chine-2026-11-05",
   "fuseau": 8,
   "roles": {
     "dj": {
