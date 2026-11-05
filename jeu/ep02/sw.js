@@ -1,12 +1,12 @@
 // Garde l'épisode 02 dans le téléphone pour y jouer sans réseau.
 // Stratégie : réponse depuis le cache, mise à jour en arrière-plan quand le réseau répond.
 // Changer VERSION (et la liste) quand un fichier ou un ?v=N change.
-const VERSION = 'locost-ep02-v18';
+const VERSION = 'locost-ep02-v19';
 const FICHIERS = [
   '/jeu/ep02/',
-  '/jeu/ep02/episode.js?v=13',
+  '/jeu/ep02/episode.js?v=14',
   '/jeu/ep02/carte.js?v=1',
-  '/jeu/moteur/missions.js?v=14',
+  '/jeu/moteur/missions.js?v=15',
   '/jeu/moteur/jeu.css?v=7',
   '/jeu/ep02/bureau.css?v=14',
   '/css/locost.css?v=7',
